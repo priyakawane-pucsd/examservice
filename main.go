@@ -35,6 +35,9 @@ func main() {
 	if err != nil {
 		logger.Panic(ctx, "failed to load config: %v", err.Error())
 	}
+	if conf.App == "" {
+		conf.App = RESTAPP
+	}
 	var application Application
 	switch conf.App {
 	case RESTAPP:

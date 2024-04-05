@@ -1,0 +1,19 @@
+Name: opengate
+Build: local
+App: 
+Controller: 
+  Name: HTTP
+  HTTP:
+    Port: 8080
+    GinModeDebug: false
+    Ping:
+      DB: true
+  Config:
+    DB: true
+Repository:
+  Name: Mongo
+  Mongo: 
+    Host: localhost:27017
+    Database: opengate
+    UserName: bappa
+    Password: bappa
