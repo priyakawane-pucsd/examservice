@@ -6,10 +6,6 @@ Controller:
   HTTP:
     Port: 8080
     GinModeDebug: false
-    Ping:
-      DB: true
-  Config:
-    DB: true
 Repository:
   Name: Mongo
   Mongo: 

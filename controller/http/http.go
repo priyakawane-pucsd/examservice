@@ -16,7 +16,6 @@ import (
 type Config struct {
 	Port         int
 	GinModeDebug bool
-	Ping         ping.Config
 }
 
 type HTTPController struct {
@@ -36,7 +35,7 @@ func (c *HTTPController) Listen(ctx context.Context) error {
 	router := gin.Default()
 
 	//registering controllers
-	ping.NewPingController(ctx, &c.conf.Ping, c.srvFactory.GetPingService()).Register(router)
+	ping.NewPingController(ctx, c.srvFactory.GetPingService()).Register(router)
 	swagger.NewSwaggerController(ctx).Register(router)
 
 	logger.Info(ctx, "swagger link: http://localhost:%d/examservice/swagger/index.html", c.conf.Port)

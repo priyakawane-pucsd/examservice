@@ -14,7 +14,47 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/examservice/ping/": {
+            "get": {
+                "description": "Pings the server and returns \"Okay\" if successful.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ping"
+                ],
+                "summary": "Pings the server.",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Flag indicating whether to ping the database",
+                        "name": "db",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PingResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.PingResponse": {
+            "type": "object",
+            "properties": {
+                "message": {},
+                "statusCode": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
