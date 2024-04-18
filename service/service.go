@@ -36,3 +36,11 @@ func NewServiceFactory(ctx context.Context, conf *Config, repo Repository) *Serv
 func (sf *ServiceFactory) GetPingService() *pingservice.Service {
 	return sf.pingService
 }
+
+func (sf *ServiceFactory) GetQuestionService() *questionservice.Service {
+	return sf.questionService
+}
+
+func (sf *ServiceFactory) GetExamService() *examservice.Service {
+	return sf.examService
+}

@@ -1,13 +1,187 @@
 definitions:
+  dto.Exam:
+    properties:
+      _id:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      end_time:
+        type: string
+      questions:
+        items:
+          type: string
+        type: array
+      start_time:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.ExamRequest:
+    properties:
+      _id:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      end_time:
+        type: string
+      questions:
+        items:
+          type: string
+        type: array
+      start_time:
+        type: string
+      title:
+        type: string
+    type: object
+  dto.ExamResponse:
+    properties:
+      _id:
+        type: string
+      statusCode:
+        type: integer
+    type: object
+  dto.ListExamsResponse:
+    properties:
+      exam:
+        items:
+          $ref: '#/definitions/dto.Exam'
+        type: array
+      statusCode:
+        type: integer
+    type: object
+  dto.ListQuestionResponse:
+    properties:
+      questions:
+        items:
+          $ref: '#/definitions/dto.Question'
+        type: array
+      statusCode:
+        type: integer
+    type: object
   dto.PingResponse:
     properties:
       message: {}
       statusCode:
         type: integer
     type: object
+  dto.Question:
+    properties:
+      choices:
+        items:
+          type: string
+        type: array
+      correct:
+        type: string
+      createdAt:
+        type: string
+      explanation:
+        type: string
+      id:
+        type: string
+      text:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+    type: object
+  dto.QuestionRequest:
+    properties:
+      _id:
+        type: string
+      choices:
+        items:
+          type: string
+        type: array
+      correct:
+        type: string
+      explanation:
+        type: string
+      text:
+        type: string
+      userId:
+        type: string
+    type: object
+  dto.QuestionResponse:
+    properties:
+      _id:
+        type: string
+      statusCode:
+        type: integer
+    type: object
+  utils.CustomError:
+    properties:
+      message:
+        type: string
+      statusCode:
+        type: integer
+    type: object
 info:
   contact: {}
 paths:
+  /examservice/exams:
+    post:
+      consumes:
+      - application/json
+      description: Create a new exam based on the provided request body.
+      parameters:
+      - description: Exam request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ExamRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            $ref: '#/definitions/dto.ExamResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+      summary: Create a new exam
+      tags:
+      - Exams
+  /examservice/exams/:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all exams.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            items:
+              $ref: '#/definitions/dto.ListExamsResponse'
+            type: array
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+      summary: Get all exams
+      tags:
+      - Exams
   /examservice/ping/:
     get:
       description: Pings the server and returns "Okay" if successful.
@@ -26,4 +200,59 @@ paths:
       summary: Pings the server.
       tags:
       - Ping
+  /examservice/questions:
+    post:
+      consumes:
+      - application/json
+      description: Create or update questions based on the request
+      parameters:
+      - description: Question request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.QuestionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created or updated questions
+          schema:
+            $ref: '#/definitions/dto.QuestionResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+      summary: Create or update questions
+      tags:
+      - Questions
+  /examservice/questions/:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all questions.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            items:
+              $ref: '#/definitions/dto.ListQuestionResponse'
+            type: array
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+      summary: Get all questions
+      tags:
+      - Questions
 swagger: "2.0"

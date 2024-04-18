@@ -11,6 +11,12 @@ const (
 )
 
 type Question struct {
-	ID   string       `json:"id"`
-	Type QuestionType `json:"type"`
+	ID          string   `bson:"_id,omitempty"`
+	Text        string   `bson:"text"`
+	Choices     []string `bson:"choices"`
+	Correct     string   `bson:"correct"`
+	Explanation string   `bson:"explanation"`
+	UserId      string   `bson:"userId"`
+	CreatedAt   string   `bson:"createdAt"`
+	UpdatedAt   string   `bson:"updatedAt"`
 }

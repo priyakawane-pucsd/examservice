@@ -1,4 +1,4 @@
-Name: opengate
+Name: examservice
 Build: local
 App: 
 Controller: 
@@ -10,6 +10,6 @@ Repository:
   Name: Mongo
   Mongo: 
     Host: localhost:27017
-    Database: opengate
+    Database: examservice
     UserName: bappa
     Password: bappa

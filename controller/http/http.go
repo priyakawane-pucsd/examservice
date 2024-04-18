@@ -2,7 +2,9 @@ package http
 
 import (
 	"context"
+	"examservice/controller/http/exam"
 	"examservice/controller/http/ping"
+	"examservice/controller/http/question"
 	"examservice/controller/http/swagger"
 	"examservice/service"
 	"fmt"
@@ -36,6 +38,8 @@ func (c *HTTPController) Listen(ctx context.Context) error {
 
 	//registering controllers
 	ping.NewPingController(ctx, c.srvFactory.GetPingService()).Register(router)
+	question.NewQuestionController(ctx, c.srvFactory.GetQuestionService()).Register(router)
+	exam.NewExamController(ctx, c.srvFactory.GetExamService()).Register(router)
 	swagger.NewSwaggerController(ctx).Register(router)
 
 	logger.Info(ctx, "swagger link: http://localhost:%d/examservice/swagger/index.html", c.conf.Port)
