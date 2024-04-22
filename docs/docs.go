@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/examservice/exams": {
             "post": {
-                "description": "Create a new exam based on the provided request body.",
+                "description": "Create a new exam or update an existing one based on the provided request body.",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,7 +27,7 @@ const docTemplate = `{
                 "tags": [
                     "Exams"
                 ],
-                "summary": "Create a new exam",
+                "summary": "Create or update an exam",
                 "parameters": [
                     {
                         "description": "Exam request body",
@@ -63,7 +63,7 @@ const docTemplate = `{
         },
         "/examservice/exams/": {
             "get": {
-                "description": "Retrieve a list of all exams.",
+                "description": "Retrieve a list of all exams filtered by topic and subTopic.",
                 "consumes": [
                     "application/json"
                 ],
@@ -74,6 +74,20 @@ const docTemplate = `{
                     "Exams"
                 ],
                 "summary": "Get all exams",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by topic",
+                        "name": "topic",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by subTopic",
+                        "name": "subTopic",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -86,6 +100,56 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    }
+                }
+            }
+        },
+        "/examservice/exams/{id}": {
+            "delete": {
+                "description": "Deletes an exam by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exams"
+                ],
+                "summary": "Delete an exam by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Exam ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ExamResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "404": {
+                        "description": "Exam not found",
                         "schema": {
                             "$ref": "#/definitions/utils.CustomError"
                         }
@@ -210,6 +274,56 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/examservice/questions/{id}": {
+            "delete": {
+                "description": "Deletes a question by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Questions"
+                ],
+                "summary": "Delete a question by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Question ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "$ref": "#/definitions/dto.QuestionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "404": {
+                        "description": "Question not found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -240,7 +354,13 @@ const docTemplate = `{
                 "start_time": {
                     "type": "string"
                 },
+                "sub_topic": {
+                    "type": "string"
+                },
                 "title": {
+                    "type": "string"
+                },
+                "topic": {
                     "type": "string"
                 },
                 "updated_at": {
@@ -272,7 +392,13 @@ const docTemplate = `{
                 "start_time": {
                     "type": "string"
                 },
+                "sub_topic": {
+                    "type": "string"
+                },
                 "title": {
+                    "type": "string"
+                },
+                "topic": {
                     "type": "string"
                 }
             }
@@ -328,6 +454,9 @@ const docTemplate = `{
         "dto.Question": {
             "type": "object",
             "properties": {
+                "_id": {
+                    "type": "string"
+                },
                 "choices": {
                     "type": "array",
                     "items": {
@@ -337,19 +466,16 @@ const docTemplate = `{
                 "correct": {
                     "type": "string"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string"
                 },
                 "explanation": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "string"
-                },
                 "text": {
                     "type": "string"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string"
                 },
                 "userId": {

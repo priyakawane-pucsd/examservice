@@ -17,7 +17,11 @@ definitions:
         type: array
       start_time:
         type: string
+      sub_topic:
+        type: string
       title:
+        type: string
+      topic:
         type: string
       updated_at:
         type: string
@@ -38,7 +42,11 @@ definitions:
         type: array
       start_time:
         type: string
+      sub_topic:
+        type: string
       title:
+        type: string
+      topic:
         type: string
     type: object
   dto.ExamResponse:
@@ -74,21 +82,21 @@ definitions:
     type: object
   dto.Question:
     properties:
+      _id:
+        type: string
       choices:
         items:
           type: string
         type: array
       correct:
         type: string
-      createdAt:
+      created_at:
         type: string
       explanation:
         type: string
-      id:
-        type: string
       text:
         type: string
-      updatedAt:
+      updated_at:
         type: string
       userId:
         type: string
@@ -131,7 +139,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new exam based on the provided request body.
+      description: Create a new exam or update an existing one based on the provided
+        request body.
       parameters:
       - description: Exam request body
         in: body
@@ -154,14 +163,23 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/utils.CustomError'
-      summary: Create a new exam
+      summary: Create or update an exam
       tags:
       - Exams
   /examservice/exams/:
     get:
       consumes:
       - application/json
-      description: Retrieve a list of all exams.
+      description: Retrieve a list of all exams filtered by topic and subTopic.
+      parameters:
+      - description: Filter by topic
+        in: query
+        name: topic
+        type: string
+      - description: Filter by subTopic
+        in: query
+        name: subTopic
+        type: string
       produces:
       - application/json
       responses:
@@ -180,6 +198,39 @@ paths:
           schema:
             $ref: '#/definitions/utils.CustomError'
       summary: Get all exams
+      tags:
+      - Exams
+  /examservice/exams/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an exam by its ID.
+      parameters:
+      - description: Exam ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            $ref: '#/definitions/dto.ExamResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "404":
+          description: Exam not found
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+      summary: Delete an exam by ID
       tags:
       - Exams
   /examservice/ping/:
@@ -253,6 +304,39 @@ paths:
           schema:
             $ref: '#/definitions/utils.CustomError'
       summary: Get all questions
+      tags:
+      - Questions
+  /examservice/questions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a question by its ID.
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            $ref: '#/definitions/dto.QuestionResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "404":
+          description: Question not found
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+      summary: Delete a question by ID
       tags:
       - Questions
 swagger: "2.0"

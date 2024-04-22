@@ -23,6 +23,8 @@ func ExamsResponse(exam *dao.Exam) *dto.Exam {
 		EndTime:     exam.EndTime,
 		Duration:    exam.Duration,
 		Questions:   exam.Questions,
+		Topic:       exam.Topic,
+		SubTopic:    exam.SubTopic,
 		CreatedAt:   exam.CreatedAt,
 		UpdatedAt:   exam.UpdatedAt,
 	}

@@ -16,31 +16,40 @@ const (
 	QUESTIONS_COLLECTION = "questions"
 )
 
-func (r *Repository) CreateQuestions(ctx context.Context, req *dao.Question) error {
+func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Question) (string, error) {
 	// Specify the MongoDB collection
 	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
 
-	// Generate a new ObjectID for the question
-	objectID := primitive.NewObjectID()
+	// Set the ID of the question
+	objectID := ""
+	if req.ID == "" {
+		objectID = primitive.NewObjectID().Hex()
+	} else {
+		objectID = req.ID
+	}
 
 	question := bson.M{
-		"_id":         objectID,
+		"id":          objectID,
 		"text":        req.Text,
 		"choices":     req.Choices,
 		"correct":     req.Correct,
 		"explanation": req.Explanation,
 		"userId":      req.UserId,
-		"createdAt":   time.Now().Format(time.RFC3339),
-		"updatedAt":   time.Now().Format(time.RFC3339),
+		"createdAt":   time.Now(),
+		"updatedAt":   time.Now(),
 	}
 
-	// Insert the document into the collection
-	_, err := collection.InsertOne(ctx, question)
+	// Upsert the question document into the collection
+	filter := bson.M{"id": objectID}
+	update := bson.M{"$set": question}
+	opts := options.Update().SetUpsert(true)
+	_, err := collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
-		logger.Error(ctx, "Error inserting new question: %v", err)
-		return utils.NewInternalServerError("Failed to insert new question into the database")
+		logger.Error(ctx, "Error upserting question: %v", err)
+		return "", utils.NewInternalServerError("Failed to upsert question into the database")
 	}
-	return nil
+
+	return objectID, nil
 }
 
 func (r *Repository) GetQuestionsList(ctx context.Context) ([]*dao.Question, error) {
@@ -48,7 +57,7 @@ func (r *Repository) GetQuestionsList(ctx context.Context) ([]*dao.Question, err
 	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
 
 	// Define options for the find operation
-	findOptions := options.Find()
+	findOptions := options.Find().SetSort(bson.M{"createdAt": -1})
 
 	// Execute the find operation to retrieve all questions
 	cursor, err := collection.Find(ctx, bson.M{}, findOptions)
@@ -66,4 +75,24 @@ func (r *Repository) GetQuestionsList(ctx context.Context) ([]*dao.Question, err
 	}
 
 	return questions, nil
+}
+
+func (r *Repository) DeleteQuestionById(ctx context.Context, id string) error {
+	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
+
+	// Specify the filter based on the ID
+	filter := bson.M{"_id": id}
+	// Perform the deletion operation
+	result, err := collection.DeleteOne(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, "Error deleting question by ID: %v", err)
+		return utils.NewInternalServerError("Failed to delete question")
+	}
+
+	// Check if no documents were matched and deleted
+	if result.DeletedCount == 0 {
+		return utils.NewCustomError(404, "Question not found with this Id")
+	}
+
+	return nil
 }

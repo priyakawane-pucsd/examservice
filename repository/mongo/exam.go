@@ -16,40 +16,61 @@ const (
 	EXAM_COLLECTION = "exams"
 )
 
-func (r *Repository) CreateExam(ctx context.Context, req *dao.Exam) error {
+func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) (string, error) {
 	// Specify the MongoDB collection
 	collection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
 
 	// Set the ID of the exam
-	objectId := primitive.NewObjectID()
+	objectId := ""
+	if req.ID == "" {
+		objectId = primitive.NewObjectID().Hex()
+	} else {
+		objectId = req.ID
+	}
 
 	exam := bson.M{
-		"_id":         objectId,
 		"title":       req.Title,
 		"description": req.Description,
 		"startTime":   req.StartTime,
+		"endTime":     req.EndTime,
 		"duration":    req.Duration,
+		"topic":       req.Topic,
+		"sub_topic":   req.SubTopic,
 		"questions":   req.Questions,
 		"createdAt":   time.Now().Format(time.RFC3339),
 		"updatedAt":   time.Now().Format(time.RFC3339),
 	}
-	// Insert the exam document into the collection
-	_, err := collection.InsertOne(ctx, exam)
+
+	//Upsert the exam document into the collection
+	filter := bson.M{"_id": objectId}
+	update := bson.M{"$set": exam}
+
+	_, err := collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
 	if err != nil {
-		logger.Error(ctx, "Error inserting new exam: %v", err)
-		return utils.NewInternalServerError("Failed to insert new exam into the database")
+		logger.Error(ctx, "Error upserting exam: %v", err)
+		return "", utils.NewInternalServerError("Failed to upsert exam into the database")
 	}
-	return nil
+	return objectId, nil
 }
 
-func (r *Repository) GetExamsList(ctx context.Context) ([]*dao.Exam, error) {
+func (r *Repository) GetExamsList(ctx context.Context, topic string, subTopic string) ([]*dao.Exam, error) {
 	// Specify the MongoDB collection
 	collection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
+
+	// Define the filter based on provided topic and subTopic
+	filter := bson.M{}
+	if topic != "" {
+		filter["topic"] = bson.M{"$regex": primitive.Regex{Pattern: topic, Options: "i"}}
+	}
+	if subTopic != "" {
+		filter["sub_topic"] = bson.M{"$regex": primitive.Regex{Pattern: subTopic, Options: "i"}}
+	}
+
 	// Define options for the find operation
-	findOptions := options.Find()
+	findOptions := options.Find().SetSort(bson.M{"createdAt": -1})
 
 	// Execute the find operation to retrieve all questions
-	cursor, err := collection.Find(ctx, bson.M{}, findOptions)
+	cursor, err := collection.Find(ctx, filter, findOptions)
 	if err != nil {
 		logger.Error(ctx, "Error retrieving exams: %v", err)
 		return nil, utils.NewInternalServerError("Failed to retrieve exams from the database")
@@ -62,6 +83,19 @@ func (r *Repository) GetExamsList(ctx context.Context) ([]*dao.Exam, error) {
 		logger.Error(ctx, "Error decoding exams: %v", err)
 		return nil, utils.NewInternalServerError("Failed to decode exams")
 	}
-
 	return exams, nil
+}
+
+func (r *Repository) DeleteExamById(ctx context.Context, id string) error {
+	collection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
+	filter := bson.M{"_id": id}
+	res, err := collection.DeleteOne(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, "Error deleting exam by ID: %v", err)
+		return utils.NewInternalServerError("Failed to delete exam")
+	}
+	if res.DeletedCount == 0 {
+		utils.NewCustomError(404, "No exam found for this id")
+	}
+	return nil
 }

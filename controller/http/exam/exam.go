@@ -14,8 +14,9 @@ type ExamController struct {
 }
 
 type Service interface {
-	CreateExam(ctx context.Context, req *dto.ExamRequest) (*dto.ExamResponse, error)
-	GetExamsList(ctx context.Context) (*dto.ListExamsResponse, error)
+	CreateOrUpdateExam(ctx context.Context, req *dto.ExamRequest) (*dto.ExamResponse, error)
+	GetExamsList(ctx context.Context, topic string, subTopic string) (*dto.ListExamsResponse, error)
+	DeleteExamById(ctx context.Context, examId string) (*dto.DeleteExamResponse, error)
 }
 
 func NewExamController(ctx context.Context, service Service) *ExamController {
@@ -24,13 +25,16 @@ func NewExamController(ctx context.Context, service Service) *ExamController {
 
 func (ec *ExamController) Register(router gin.IRouter) {
 	examRouter := router.Group("/examservice/exams")
-	examRouter.POST("/", ec.CreateExam)
+	examRouter.POST("/", ec.CreateOrUpdateExam)
 	examRouter.GET("/", ec.GetExamsList)
+	examRouter.DELETE("/:id", ec.DeleteExamById)
 }
 
-// CreateExam creates a new exam.
-// @Summary Create a new exam
-// @Description Create a new exam based on the provided request body.
+// CreateOrUpdateExam creates a new exam or updates an existing one.
+// If the exam ID is provided in the request body, it will update the existing exam.
+// Otherwise, it will create a new exam based on the provided request body.
+// @Summary Create or update an exam
+// @Description Create a new exam or update an existing one based on the provided request body.
 // @Tags Exams
 // @Accept json
 // @Produce json
@@ -39,7 +43,7 @@ func (ec *ExamController) Register(router gin.IRouter) {
 // @Failure 400 {object} utils.CustomError "Invalid request body"
 // @Failure 500 {object} utils.CustomError "Internal server error"
 // @Router /examservice/exams [post]
-func (ec *ExamController) CreateExam(ctx *gin.Context) {
+func (ec *ExamController) CreateOrUpdateExam(ctx *gin.Context) {
 	var req dto.ExamRequest
 	err := ctx.BindJSON(&req)
 	if err != nil {
@@ -54,7 +58,7 @@ func (ec *ExamController) CreateExam(ctx *gin.Context) {
 		return
 	}
 
-	res, err := ec.service.CreateExam(ctx, &req)
+	res, err := ec.service.CreateOrUpdateExam(ctx, &req)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return
@@ -62,21 +66,53 @@ func (ec *ExamController) CreateExam(ctx *gin.Context) {
 	utils.WriteResponse(ctx, res)
 }
 
-// GetExamsList retrieves a list of exams.
+// GetExamsList retrieves a list of exams filtered by topic and subTopic.
 // @Summary Get all exams
-// @Description Retrieve a list of all exams.
+// @Description Retrieve a list of all exams filtered by topic and subTopic.
 // @Tags Exams
 // @Accept json
 // @Produce json
+// @Param topic query string false "Filter by topic"
+// @Param subTopic query string false "Filter by subTopic"
 // @Success 200 {array} dto.ListExamsResponse "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request"
 // @Failure 500 {object} utils.CustomError "Internal server error"
 // @Router /examservice/exams/ [get]
 func (ec *ExamController) GetExamsList(ctx *gin.Context) {
-	exams, err := ec.service.GetExamsList(ctx)
+	// Get the topic and subTopic query parameters
+	topic := ctx.Query("topic")
+	subTopic := ctx.Query("subTopic")
+
+	// Call the service function with optional filter parameters
+	exams, err := ec.service.GetExamsList(ctx, topic, subTopic)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return
 	}
 	utils.WriteResponse(ctx, exams)
+}
+
+// DeleteExamById deletes an exam by its ID.
+// @Summary Delete an exam by ID
+// @Description Deletes an exam by its ID.
+// @Tags Exams
+// @Param id path string true "Exam ID"
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.ExamResponse "Successful response"
+// @Failure 400 {object} utils.CustomError "Invalid request"
+// @Failure 404 {object} utils.CustomError "Exam not found"
+// @Failure 500 {object} utils.CustomError "Internal server error"
+// @Router /examservice/exams/{id} [delete]
+func (ec *ExamController) DeleteExamById(ctx *gin.Context) {
+	// Extract the exam ID from the request context
+	examId := ctx.Param("id")
+
+	// Call the service function to delete the exam by ID
+	res, err := ec.service.DeleteExamById(ctx, examId)
+	if err != nil {
+		utils.WriteError(ctx, err)
+		return
+	}
+	utils.WriteResponse(ctx, res)
 }

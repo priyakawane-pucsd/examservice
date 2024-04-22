@@ -3,7 +3,6 @@ package dto
 import (
 	"errors"
 	"examservice/models/dao"
-	"strconv"
 	"time"
 )
 
@@ -21,6 +20,11 @@ type QuestionResponse struct {
 	StatusCode int    `json:"statusCode"`
 }
 
+type DeleteQuestionResponse struct {
+	Message    string `json:"_id,omitempty"`
+	StatusCode int    `json:"statusCode"`
+}
+
 func (r *QuestionRequest) ToMongoObject() *dao.Question {
 	return &dao.Question{
 		ID:          r.ID,
@@ -29,8 +33,10 @@ func (r *QuestionRequest) ToMongoObject() *dao.Question {
 		Correct:     r.Correct,
 		Explanation: r.Explanation,
 		UserId:      r.UserId,
-		CreatedAt:   strconv.FormatInt(time.Now().UnixMilli(), 10),
-		UpdatedAt:   strconv.FormatInt(time.Now().UnixMilli(), 10),
+		// CreatedAt:   strconv.FormatInt(time.Now().UnixMilli(), 10),
+		// UpdatedAt:   strconv.FormatInt(time.Now().UnixMilli(), 10),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 }
 
@@ -42,45 +48,40 @@ type ListQuestionResponse struct {
 
 // Question represents a single question.
 type Question struct {
-	ID          string   `json:"id"`
-	Text        string   `json:"text"`
-	Choices     []string `json:"choices"`
-	Correct     string   `json:"correct"`
-	Explanation string   `json:"explanation"`
-	UserId      string   `json:"userId"`
-	CreatedAt   string   `json:"createdAt"`
-	UpdatedAt   string   `json:"updatedAt"`
+	ID          string    `json:"_id"`
+	Text        string    `json:"text"`
+	Choices     []string  `json:"choices"`
+	Correct     string    `json:"correct"`
+	Explanation string    `json:"explanation"`
+	UserId      string    `json:"userId"`
+	CreatedAt   time.Time `json:"created_at,omitempty"`
+	UpdatedAt   time.Time `json:"updated_at,omitempty"`
+	// CreatedAt   string   `json:"createdAt"`
+	// UpdatedAt   string   `json:"updatedAt"`
 }
 
 func (q *QuestionRequest) Validate() error {
-	if q.ID == "" {
-		return errors.New("ID is required")
-	}
-
 	if q.Text == "" {
-		return errors.New("Text is required")
+		return errors.New("text is required")
+	}
+	if len(q.Choices) == 0 {
+		return errors.New("choices must not be empty")
 	}
 
-	if len(q.Choices) == 0 {
-		return errors.New("Choices must not be empty")
-	}
 	for _, choice := range q.Choices {
 		if choice == "" {
-			return errors.New("Choice cannot be empty")
+			return errors.New("choice cannot be empty")
 		}
 	}
-
 	if q.Correct == "" {
-		return errors.New("Correct answer is required")
+		return errors.New("correct answer is required")
 	}
 
 	if q.Explanation == "" {
-		return errors.New("Explanation is required")
+		return errors.New("explanation is required")
 	}
-
 	if q.UserId == "" {
-		return errors.New("UserID is required")
+		return errors.New("userID is required")
 	}
-
 	return nil
 }

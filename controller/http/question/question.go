@@ -14,8 +14,9 @@ type QuestionController struct {
 }
 
 type Service interface {
-	CreateQuestions(ctx context.Context, req *dto.QuestionRequest) (*dto.QuestionResponse, error)
+	CreateOrUpdateQuestions(ctx context.Context, req *dto.QuestionRequest) (*dto.QuestionResponse, error)
 	GetQuestionsList(ctx context.Context) (*dto.ListQuestionResponse, error)
+	DeleteQuestionById(ctx context.Context, questiondId string) (*dto.DeleteQuestionResponse, error)
 }
 
 func NewQuestionController(ctx context.Context, service Service) *QuestionController {
@@ -24,8 +25,9 @@ func NewQuestionController(ctx context.Context, service Service) *QuestionContro
 
 func (qc *QuestionController) Register(router gin.IRouter) {
 	QuestionRouter := router.Group("/examservice/questions")
-	QuestionRouter.POST("/", qc.CreateQuestions)
+	QuestionRouter.POST("/", qc.CreateOrUpdateQuestions)
 	QuestionRouter.GET("/", qc.GetQuestionsList)
+	QuestionRouter.DELETE("/:id", qc.DeleteQuestionById)
 }
 
 // @Summary Create or update questions
@@ -38,7 +40,7 @@ func (qc *QuestionController) Register(router gin.IRouter) {
 // @Failure 400 {object} utils.CustomError "Invalid request body"
 // @Failure 500 {object} utils.CustomError "Internal server error"
 // @Router /examservice/questions [post]
-func (qc *QuestionController) CreateQuestions(ctx *gin.Context) {
+func (qc *QuestionController) CreateOrUpdateQuestions(ctx *gin.Context) {
 	var req dto.QuestionRequest
 	err := ctx.BindJSON(&req)
 	if err != nil {
@@ -53,7 +55,7 @@ func (qc *QuestionController) CreateQuestions(ctx *gin.Context) {
 		return
 	}
 
-	res, err := qc.service.CreateQuestions(ctx, &req)
+	res, err := qc.service.CreateOrUpdateQuestions(ctx, &req)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return
@@ -78,4 +80,29 @@ func (qc *QuestionController) GetQuestionsList(ctx *gin.Context) {
 		return
 	}
 	utils.WriteResponse(ctx, configs)
+}
+
+// DeleteQuestionById deletes a question by its ID.
+// @Summary Delete a question by ID
+// @Description Deletes a question by its ID.
+// @Tags Questions
+// @Param id path string true "Question ID"
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.QuestionResponse "Successful response"
+// @Failure 400 {object} utils.CustomError "Invalid request"
+// @Failure 404 {object} utils.CustomError "Question not found"
+// @Failure 500 {object} utils.CustomError "Internal server error"
+// @Router /examservice/questions/{id} [delete]
+func (qc *QuestionController) DeleteQuestionById(ctx *gin.Context) {
+	// Extract the question ID from the request context
+	questionId := ctx.Param("id")
+
+	// Call the service function to delete the question by ID
+	res, err := qc.service.DeleteQuestionById(ctx, questionId)
+	if err != nil {
+		utils.WriteError(ctx, err)
+		return
+	}
+	utils.WriteResponse(ctx, res)
 }
