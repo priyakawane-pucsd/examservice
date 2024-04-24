@@ -15,6 +15,8 @@ type QuestionController struct {
 
 type Service interface {
 	CreateOrUpdateQuestions(ctx context.Context, req *dto.QuestionRequest) (*dto.QuestionResponse, error)
+
+	//todo use filters to fetch questions
 	GetQuestionsList(ctx context.Context) (*dto.ListQuestionResponse, error)
 	DeleteQuestionById(ctx context.Context, questiondId string) (*dto.DeleteQuestionResponse, error)
 }

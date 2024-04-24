@@ -3,26 +3,39 @@ package dto
 import (
 	"errors"
 	"examservice/models/dao"
+	"strings"
 	"time"
 )
 
 type ExamRequest struct {
-	ID          string   `json:"_id,omitempty"`
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	StartTime   string   `json:"start_time"`
-	EndTime     string   `json:"end_time"`
-	Duration    int      `json:"duration"`
-	Questions   []string `json:"questions"`
-	Topic       string   `json:"topic"`
-	SubTopic    string   `json:"sub_topic"`
+	ID              string   `json:"_id,omitempty"`
+	Title           string   `json:"title"`
+	Description     string   `json:"description"`
+	StartTime       int64    `json:"start_time"`
+	EndTime         int64    `json:"end_time"`
+	Duration        int      `json:"duration"`
+	Questions       []string `json:"questions"`
+	Topic           string   `json:"topic"`
+	SubTopic        string   `json:"sub_topic"`
+	ExamFee         float64  `json:"exam_fee"`
+	DifficultyLevel string   `json:"difficulty_level"`
 }
 
 func (er *ExamRequest) Validate() error {
+	validDifficultLevels := map[string]bool{
+		"EASY":   true,
+		"MEDIUM": true,
+		"HARD":   true,
+	}
+	if !validDifficultLevels[strings.ToUpper(er.DifficultyLevel)] {
+		return errors.New("invalid difficult level")
+	}
+
 	// Check if title is empty
 	if er.Title == "" {
 		return errors.New("title cannot be empty")
 	}
+
 	// Check if description is empty
 	if er.Description == "" {
 		return errors.New("description cannot be empty")
@@ -39,19 +52,22 @@ func (er *ExamRequest) Validate() error {
 	}
 
 	// Check if StartTime is a valid time format
-	_, err := time.Parse(time.RFC3339, er.StartTime)
+	_, err := time.Parse(time.RFC3339, time.Unix(er.StartTime, 0).Format(time.RFC3339))
 	if err != nil {
 		return errors.New("start_time must be a valid RFC3339 formatted time")
 	}
+
 	// Check if EndTime is a valid time format
-	_, err = time.Parse(time.RFC3339, er.EndTime)
+	_, err = time.Parse(time.RFC3339, time.Unix(er.EndTime, 0).Format(time.RFC3339))
 	if err != nil {
 		return errors.New("end_time must be a valid RFC3339 formatted time")
 	}
+
 	// Check if Duration is non-negative
 	if er.Duration < 0 {
 		return errors.New("duration cannot be negative")
 	}
+
 	// If all validations pass, return nil
 	return nil
 }
@@ -62,34 +78,36 @@ type ExamResponse struct {
 }
 
 type Exam struct {
-	ID          string    `json:"_id,omitempty"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	StartTime   string    `json:"start_time"`
-	EndTime     string    `json:"end_time"`
-	Duration    int       `json:"duration"`
-	Questions   []string  `json:"questions"`
-	Topic       string    `json:"topic"`
-	SubTopic    string    `json:"sub_topic"`
-	CreatedAt   time.Time `json:"created_at,omitempty"`
-	UpdatedAt   time.Time `json:"updated_at,omitempty"`
+	ID              string   `json:"_id,omitempty"`
+	Title           string   `json:"title"`
+	Description     string   `json:"description"`
+	StartTime       int64    `json:"start_time"`
+	EndTime         int64    `json:"end_time"`
+	Duration        int      `json:"duration"`
+	Questions       []string `json:"questions"`
+	Topic           string   `json:"topic"`
+	SubTopic        string   `json:"sub_topic"`
+	ExamFee         float64  `json:"exam_fee"`
+	DifficultyLevel string   `json:"difficulty_level"`
+	CreatedAt       int64    `json:"created_at,omitempty"`
+	UpdatedAt       int64    `json:"updated_at,omitempty"`
 }
 
 func (r *ExamRequest) ToMongoObject() *dao.Exam {
 	return &dao.Exam{
-		ID:          r.ID,
-		Title:       r.Title,
-		Description: r.Description,
-		StartTime:   r.StartTime,
-		EndTime:     r.EndTime,
-		Duration:    r.Duration,
-		Questions:   r.Questions,
-		Topic:       r.Topic,
-		SubTopic:    r.SubTopic,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-		// CreatedAt:   strconv.FormatInt(time.Now().UnixMilli(), 10),
-		// UpdatedAt:   strconv.FormatInt(time.Now().UnixMilli(), 10),
+		ID:              r.ID,
+		Title:           r.Title,
+		Description:     r.Description,
+		StartTime:       time.Now().UnixMilli(),
+		EndTime:         time.Now().UnixMilli(),
+		Duration:        r.Duration,
+		Questions:       r.Questions,
+		Topic:           r.Topic,
+		SubTopic:        r.SubTopic,
+		ExamFee:         r.ExamFee,
+		DifficultyLevel: r.DifficultyLevel,
+		CreatedAt:       time.Now().UnixMilli(),
+		UpdatedAt:       time.Now().UnixMilli(),
 	}
 }
 

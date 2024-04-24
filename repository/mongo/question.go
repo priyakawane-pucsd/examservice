@@ -20,6 +20,20 @@ func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Quest
 	// Specify the MongoDB collection
 	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
 
+	// Convert created_at and updated_at to milliseconds
+	createdAtMillis := time.Now().UnixNano() / int64(time.Millisecond)
+	updatedAtMillis := createdAtMillis // Assume created_at and updated_at are the same initially
+
+	question := bson.M{
+		"text":        req.Text,
+		"choices":     req.Choices,
+		"correct":     req.Correct,
+		"explanation": req.Explanation,
+		"userId":      req.UserId,
+		"createdAt":   createdAtMillis,
+		"updatedAt":   updatedAtMillis,
+	}
+
 	// Set the ID of the question
 	objectID := ""
 	if req.ID == "" {
@@ -28,21 +42,11 @@ func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Quest
 		objectID = req.ID
 	}
 
-	question := bson.M{
-		"id":          objectID,
-		"text":        req.Text,
-		"choices":     req.Choices,
-		"correct":     req.Correct,
-		"explanation": req.Explanation,
-		"userId":      req.UserId,
-		"createdAt":   time.Now(),
-		"updatedAt":   time.Now(),
-	}
-
 	// Upsert the question document into the collection
-	filter := bson.M{"id": objectID}
+	filter := bson.M{"_id": objectID}
 	update := bson.M{"$set": question}
 	opts := options.Update().SetUpsert(true)
+
 	_, err := collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		logger.Error(ctx, "Error upserting question: %v", err)

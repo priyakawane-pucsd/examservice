@@ -9,7 +9,7 @@ import (
 type QuestionRequest struct {
 	ID          string   `json:"_id,omitempty"`
 	Text        string   `json:"text"`
-	Choices     []string `json:"choices"`
+	Choices     []Choice `json:"choices"`
 	Correct     string   `json:"correct"`
 	Explanation string   `json:"explanation"`
 	UserId      string   `json:"userId"`
@@ -26,17 +26,23 @@ type DeleteQuestionResponse struct {
 }
 
 func (r *QuestionRequest) ToMongoObject() *dao.Question {
+	var choices []dao.Choice
+	for _, choice := range r.Choices {
+		choices = append(choices, dao.Choice{
+			Key:   choice.Key,
+			Value: choice.Value,
+		})
+	}
+
 	return &dao.Question{
 		ID:          r.ID,
 		Text:        r.Text,
-		Choices:     r.Choices,
+		Choices:     choices,
 		Correct:     r.Correct,
 		Explanation: r.Explanation,
 		UserId:      r.UserId,
-		// CreatedAt:   strconv.FormatInt(time.Now().UnixMilli(), 10),
-		// UpdatedAt:   strconv.FormatInt(time.Now().UnixMilli(), 10),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt:   time.Now().UnixMilli(),
+		UpdatedAt:   time.Now().UnixMilli(),
 	}
 }
 
@@ -46,18 +52,21 @@ type ListQuestionResponse struct {
 	StatusCode int        `json:"statusCode"`
 }
 
+type Choice struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 // Question represents a single question.
 type Question struct {
-	ID          string    `json:"_id"`
-	Text        string    `json:"text"`
-	Choices     []string  `json:"choices"`
-	Correct     string    `json:"correct"`
-	Explanation string    `json:"explanation"`
-	UserId      string    `json:"userId"`
-	CreatedAt   time.Time `json:"created_at,omitempty"`
-	UpdatedAt   time.Time `json:"updated_at,omitempty"`
-	// CreatedAt   string   `json:"createdAt"`
-	// UpdatedAt   string   `json:"updatedAt"`
+	ID          string   `json:"_id"`
+	Text        string   `json:"text"`
+	Choices     []Choice `json:"choices"`
+	Correct     string   `json:"correct"`
+	Explanation string   `json:"explanation"`
+	UserId      string   `json:"userId"`
+	CreatedAt   int64    `json:"created_at,omitempty"`
+	UpdatedAt   int64    `json:"updated_at,omitempty"`
 }
 
 func (q *QuestionRequest) Validate() error {
@@ -69,8 +78,12 @@ func (q *QuestionRequest) Validate() error {
 	}
 
 	for _, choice := range q.Choices {
-		if choice == "" {
-			return errors.New("choice cannot be empty")
+		if choice.Key == "" {
+			return errors.New("choice key cannot be empty")
+		}
+
+		if choice.Value == "" {
+			return errors.New("choice value cannot be empty")
 		}
 	}
 	if q.Correct == "" {

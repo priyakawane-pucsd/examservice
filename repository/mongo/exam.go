@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"examservice/models/dao"
 	"examservice/utils"
 	"time"
@@ -16,9 +17,69 @@ const (
 	EXAM_COLLECTION = "exams"
 )
 
+func (r *Repository) validateQuestionIds(ctx context.Context, questionIds []string) (bool, error) {
+	// Get the question collection
+	questionCollection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
+
+	filter := bson.M{"_id": bson.M{"$in": questionIds}}
+	count, err := questionCollection.CountDocuments(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, "Error counting documents in questions collection: %v", err)
+		return false, err
+	}
+	if count != int64(len(questionIds)) {
+		return false, nil // At least one ID doesn't exist
+	}
+
+	// Iterate over the question IDs and check if each ID exists in the database
+	// for _, id := range questionIds {
+	// 	filter := bson.M{"_id": id}
+	// 	count, err := questionCollection.CountDocuments(ctx, filter)
+	// 	if err != nil {
+	// 		logger.Error(ctx, "Error counting documents in questions collection: %v", err)
+	// 		return false, err
+	// 	}
+	// 	if count == 0 {
+	// 		return false, nil // At least one ID doesn't exist
+	// 	}
+	// }
+	return true, nil
+}
+
 func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) (string, error) {
 	// Specify the MongoDB collection
-	collection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
+	examCollection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
+
+	// Validate question IDs if provided
+	if len(req.Questions) != 0 {
+		valid, err := r.validateQuestionIds(ctx, req.Questions)
+		if err != nil {
+			logger.Error(ctx, "Error validating question IDs: %v", err)
+			return "", err
+		}
+		if !valid {
+			return "", errors.New("one or more question IDs are invalid")
+		}
+	}
+
+	// Convert created_at and updated_at to milliseconds
+	createdAtMillis := time.Now().UnixNano() / int64(time.Millisecond)
+	updatedAtMillis := createdAtMillis // Assume created_at and updated_at are the same initially
+
+	exam := bson.M{
+		"title":           req.Title,
+		"description":     req.Description,
+		"startTime":       req.StartTime,
+		"endTime":         req.EndTime,
+		"duration":        req.Duration,
+		"topic":           req.Topic,
+		"sub_topic":       req.SubTopic,
+		"questions":       req.Questions,
+		"examFee":         req.ExamFee,
+		"difficultyLevel": req.DifficultyLevel,
+		"createdAt":       createdAtMillis,
+		"updatedAt":       updatedAtMillis,
+	}
 
 	// Set the ID of the exam
 	objectId := ""
@@ -28,24 +89,11 @@ func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) (str
 		objectId = req.ID
 	}
 
-	exam := bson.M{
-		"title":       req.Title,
-		"description": req.Description,
-		"startTime":   req.StartTime,
-		"endTime":     req.EndTime,
-		"duration":    req.Duration,
-		"topic":       req.Topic,
-		"sub_topic":   req.SubTopic,
-		"questions":   req.Questions,
-		"createdAt":   time.Now().Format(time.RFC3339),
-		"updatedAt":   time.Now().Format(time.RFC3339),
-	}
-
 	//Upsert the exam document into the collection
 	filter := bson.M{"_id": objectId}
 	update := bson.M{"$set": exam}
 
-	_, err := collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
+	_, err := examCollection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
 	if err != nil {
 		logger.Error(ctx, "Error upserting exam: %v", err)
 		return "", utils.NewInternalServerError("Failed to upsert exam into the database")

@@ -1,22 +1,53 @@
 definitions:
+  dto.AnswerRequest:
+    properties:
+      _id:
+        type: string
+      answers:
+        items:
+          $ref: '#/definitions/dto.QuestionAnswer'
+        type: array
+      examId:
+        type: string
+      userId:
+        type: string
+    type: object
+  dto.AnswerResponse:
+    properties:
+      _id:
+        type: string
+      statusCode:
+        type: integer
+    type: object
+  dto.Choice:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+    type: object
   dto.Exam:
     properties:
       _id:
         type: string
       created_at:
-        type: string
+        type: integer
       description:
+        type: string
+      difficulty_level:
         type: string
       duration:
         type: integer
       end_time:
-        type: string
+        type: integer
+      exam_fee:
+        type: number
       questions:
         items:
           type: string
         type: array
       start_time:
-        type: string
+        type: integer
       sub_topic:
         type: string
       title:
@@ -24,7 +55,7 @@ definitions:
       topic:
         type: string
       updated_at:
-        type: string
+        type: integer
     type: object
   dto.ExamRequest:
     properties:
@@ -32,16 +63,20 @@ definitions:
         type: string
       description:
         type: string
+      difficulty_level:
+        type: string
       duration:
         type: integer
       end_time:
-        type: string
+        type: integer
+      exam_fee:
+        type: number
       questions:
         items:
           type: string
         type: array
       start_time:
-        type: string
+        type: integer
       sub_topic:
         type: string
       title:
@@ -86,19 +121,26 @@ definitions:
         type: string
       choices:
         items:
-          type: string
+          $ref: '#/definitions/dto.Choice'
         type: array
       correct:
         type: string
       created_at:
-        type: string
+        type: integer
       explanation:
         type: string
       text:
         type: string
       updated_at:
-        type: string
+        type: integer
       userId:
+        type: string
+    type: object
+  dto.QuestionAnswer:
+    properties:
+      answer:
+        type: string
+      questionId:
         type: string
     type: object
   dto.QuestionRequest:
@@ -107,7 +149,7 @@ definitions:
         type: string
       choices:
         items:
-          type: string
+          $ref: '#/definitions/dto.Choice'
         type: array
       correct:
         type: string
@@ -135,6 +177,36 @@ definitions:
 info:
   contact: {}
 paths:
+  /examservice/answers/submit:
+    post:
+      consumes:
+      - application/json
+      description: Creates or updates an answer based on the provided request body.
+      parameters:
+      - description: Answer request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AnswerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/dto.AnswerResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+      summary: Create or update answer
+      tags:
+      - Answers
   /examservice/exams:
     post:
       consumes:

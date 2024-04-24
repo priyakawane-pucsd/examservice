@@ -15,6 +15,52 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/examservice/answers/submit": {
+            "post": {
+                "description": "Creates or updates an answer based on the provided request body.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Answers"
+                ],
+                "summary": "Create or update answer",
+                "parameters": [
+                    {
+                        "description": "Answer request body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AnswerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AnswerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    }
+                }
+            }
+        },
         "/examservice/exams": {
             "post": {
                 "description": "Create a new exam or update an existing one based on the provided request body.",
@@ -327,6 +373,48 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AnswerRequest": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.QuestionAnswer"
+                    }
+                },
+                "examId": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AnswerResponse": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "statusCode": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.Choice": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Exam": {
             "type": "object",
             "properties": {
@@ -334,16 +422,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "difficulty_level": {
                     "type": "string"
                 },
                 "duration": {
                     "type": "integer"
                 },
                 "end_time": {
-                    "type": "string"
+                    "type": "integer"
+                },
+                "exam_fee": {
+                    "type": "number"
                 },
                 "questions": {
                     "type": "array",
@@ -352,7 +446,7 @@ const docTemplate = `{
                     }
                 },
                 "start_time": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "sub_topic": {
                     "type": "string"
@@ -364,7 +458,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -377,11 +471,17 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "difficulty_level": {
+                    "type": "string"
+                },
                 "duration": {
                     "type": "integer"
                 },
                 "end_time": {
-                    "type": "string"
+                    "type": "integer"
+                },
+                "exam_fee": {
+                    "type": "number"
                 },
                 "questions": {
                     "type": "array",
@@ -390,7 +490,7 @@ const docTemplate = `{
                     }
                 },
                 "start_time": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "sub_topic": {
                     "type": "string"
@@ -460,14 +560,14 @@ const docTemplate = `{
                 "choices": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/dto.Choice"
                     }
                 },
                 "correct": {
                     "type": "string"
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "explanation": {
                     "type": "string"
@@ -476,9 +576,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.QuestionAnswer": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string"
+                },
+                "questionId": {
                     "type": "string"
                 }
             }
@@ -492,7 +603,7 @@ const docTemplate = `{
                 "choices": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/dto.Choice"
                     }
                 },
                 "correct": {

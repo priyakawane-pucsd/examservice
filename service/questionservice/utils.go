@@ -15,10 +15,17 @@ func ConvertToQuestionResponseList(questions []*dao.Question) []dto.Question {
 }
 
 func QuestionsResponse(question *dao.Question) *dto.Question {
+	var choices []dto.Choice
+	for _, choice := range question.Choices {
+		choices = append(choices, dto.Choice{
+			Key:   choice.Key,
+			Value: choice.Value,
+		})
+	}
 	return &dto.Question{
 		ID:          question.ID,
 		Text:        question.Text,
-		Choices:     question.Choices,
+		Choices:     choices,
 		Correct:     question.Correct,
 		Explanation: question.Explanation,
 		UserId:      question.UserId,
