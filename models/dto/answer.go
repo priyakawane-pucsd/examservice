@@ -11,6 +11,18 @@ type AnswerRequest struct {
 	UserID  string           `json:"userId"`
 	ExamID  string           `json:"examId"`
 	Answers []QuestionAnswer `json:"answers"`
+	Result  Result           `json:"result"`
+}
+
+type Result struct {
+	Attempted int64 `json:"attempted"`
+	Correct   int64 `json:"correct"`
+}
+
+type QuestionAnswer struct {
+	QuestionId    string `json:"questionId"`
+	Answer        string `json:"answer"`
+	CorrectAnswer string `json:"correctAnswer"`
 }
 
 type Answer struct {
@@ -18,13 +30,9 @@ type Answer struct {
 	UserID    string           `json:"userId"`
 	ExamID    string           `json:"examId"`
 	Answers   []QuestionAnswer `json:"answers"`
+	Result    Result           `json:"result"`
 	CreatedAt int64            `json:"createdAt"`
 	UpdatedAt int64            `json:"updatedAt"`
-}
-
-type QuestionAnswer struct {
-	QuestionId string `json:"questionId"`
-	Answer     string `json:"answer"`
 }
 
 type AnswerResponse struct {
@@ -37,15 +45,21 @@ func (ar *AnswerRequest) ToMongoObject() *dao.Answer {
 
 	for _, ans := range ar.Answers {
 		answers = append(answers, dao.QuestionAnswer{
-			QuestionId: ans.QuestionId,
-			Answer:     ans.Answer,
+			QuestionId:    ans.QuestionId,
+			Answer:        ans.Answer,
+			CorrectAnswer: ans.CorrectAnswer,
 		})
 	}
+
 	return &dao.Answer{
-		ID:        ar.ID,
-		UserID:    ar.UserID,
-		ExamID:    ar.ExamID,
-		Answers:   answers,
+		ID:      ar.ID,
+		UserID:  ar.UserID,
+		ExamID:  ar.ExamID,
+		Answers: answers,
+		Result: dao.Result{
+			Attempted: ar.Result.Attempted,
+			Correct:   ar.Result.Correct,
+		},
 		CreatedAt: time.Now().UnixMilli(),
 		UpdatedAt: time.Now().UnixMilli(),
 	}

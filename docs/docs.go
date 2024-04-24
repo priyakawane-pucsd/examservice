@@ -160,6 +160,54 @@ const docTemplate = `{
             }
         },
         "/examservice/exams/{id}": {
+            "get": {
+                "description": "Retrieve an exam based on the provided exam ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exams"
+                ],
+                "summary": "Get an exam by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Exam ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Exam"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "404": {
+                        "description": "Exam not found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "Deletes an exam by its ID.",
                 "consumes": [
@@ -322,6 +370,54 @@ const docTemplate = `{
             }
         },
         "/examservice/questions/{id}": {
+            "get": {
+                "description": "Retrieves a question based on the provided ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Questions"
+                ],
+                "summary": "Retrieve a question by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Question ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "$ref": "#/definitions/dto.QuestionByIdResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "404": {
+                        "description": "Question not found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "Deletes a question by its ID.",
                 "consumes": [
@@ -387,6 +483,9 @@ const docTemplate = `{
                 },
                 "examId": {
                     "type": "string"
+                },
+                "result": {
+                    "$ref": "#/definitions/dto.Result"
                 },
                 "userId": {
                     "type": "string"
@@ -589,8 +688,22 @@ const docTemplate = `{
                 "answer": {
                     "type": "string"
                 },
+                "correctAnswer": {
+                    "type": "string"
+                },
                 "questionId": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.QuestionByIdResponse": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "$ref": "#/definitions/dto.Question"
+                },
+                "statusCode": {
+                    "type": "integer"
                 }
             }
         },
@@ -627,6 +740,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "statusCode": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.Result": {
+            "type": "object",
+            "properties": {
+                "attempted": {
+                    "type": "integer"
+                },
+                "correct": {
                     "type": "integer"
                 }
             }

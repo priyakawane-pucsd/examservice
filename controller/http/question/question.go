@@ -18,7 +18,8 @@ type Service interface {
 
 	//todo use filters to fetch questions
 	GetQuestionsList(ctx context.Context) (*dto.ListQuestionResponse, error)
-	DeleteQuestionById(ctx context.Context, questiondId string) (*dto.DeleteQuestionResponse, error)
+	DeleteQuestionById(ctx context.Context, questionId string) (*dto.DeleteQuestionResponse, error)
+	GetQuestionById(ctx context.Context, questionId string) (*dto.QuestionByIdResponse, error)
 }
 
 func NewQuestionController(ctx context.Context, service Service) *QuestionController {
@@ -29,6 +30,7 @@ func (qc *QuestionController) Register(router gin.IRouter) {
 	QuestionRouter := router.Group("/examservice/questions")
 	QuestionRouter.POST("/", qc.CreateOrUpdateQuestions)
 	QuestionRouter.GET("/", qc.GetQuestionsList)
+	QuestionRouter.GET("/:id", qc.GetQuestionById)
 	QuestionRouter.DELETE("/:id", qc.DeleteQuestionById)
 }
 
@@ -82,6 +84,30 @@ func (qc *QuestionController) GetQuestionsList(ctx *gin.Context) {
 		return
 	}
 	utils.WriteResponse(ctx, configs)
+}
+
+// GetQuestionById retrieves a question by its ID.
+// @Summary Retrieve a question by ID
+// @Description Retrieves a question based on the provided ID.
+// @Tags Questions
+// @Accept json
+// @Produce json
+// @Param id path string true "Question ID"
+// @Success 200 {object} dto.QuestionByIdResponse "Successful response"
+// @Failure 400 {object} utils.CustomError "Invalid request"
+// @Failure 404 {object} utils.CustomError "Question not found"
+// @Failure 500 {object} utils.CustomError "Internal server error"
+// @Router /examservice/questions/{id} [get]
+func (qc *QuestionController) GetQuestionById(ctx *gin.Context) {
+	questionId := ctx.Param("id")
+
+	// Call the service function to delete the question by ID
+	res, err := qc.service.GetQuestionById(ctx, questionId)
+	if err != nil {
+		utils.WriteError(ctx, err)
+		return
+	}
+	utils.WriteResponse(ctx, res)
 }
 
 // DeleteQuestionById deletes a question by its ID.

@@ -21,12 +21,13 @@ type ExamRequest struct {
 	DifficultyLevel string   `json:"difficulty_level"`
 }
 
+var validDifficultLevels = map[string]bool{
+	"EASY":   true,
+	"MEDIUM": true,
+	"HARD":   true,
+}
+
 func (er *ExamRequest) Validate() error {
-	validDifficultLevels := map[string]bool{
-		"EASY":   true,
-		"MEDIUM": true,
-		"HARD":   true,
-	}
 	if !validDifficultLevels[strings.ToUpper(er.DifficultyLevel)] {
 		return errors.New("invalid difficult level")
 	}
@@ -52,19 +53,22 @@ func (er *ExamRequest) Validate() error {
 	}
 
 	// Check if StartTime is a valid time format
-	_, err := time.Parse(time.RFC3339, time.Unix(er.StartTime, 0).Format(time.RFC3339))
-	if err != nil {
-		return errors.New("start_time must be a valid RFC3339 formatted time")
+	if er.StartTime <= 0 {
+		return errors.New(" invalid start time")
 	}
 
 	// Check if EndTime is a valid time format
-	_, err = time.Parse(time.RFC3339, time.Unix(er.EndTime, 0).Format(time.RFC3339))
-	if err != nil {
-		return errors.New("end_time must be a valid RFC3339 formatted time")
+	if er.EndTime <= 0 {
+		return errors.New(" invalid end time")
+	}
+
+	// Check if startTime must be less than endTime
+	if er.EndTime <= er.StartTime {
+		return errors.New(" startTime must be less than endTime")
 	}
 
 	// Check if Duration is non-negative
-	if er.Duration < 0 {
+	if er.Duration <= 0 {
 		return errors.New("duration cannot be negative")
 	}
 
@@ -119,4 +123,9 @@ type ListExamsResponse struct {
 type DeleteExamResponse struct {
 	Message    string `json:"_id,omitempty"`
 	StatusCode int    `json:"statusCode"`
+}
+
+type ExamByIdResponse struct {
+	Exam       Exam `json:"exam"`
+	StatusCode int  `json:"statusCode"`
 }

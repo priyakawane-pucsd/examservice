@@ -98,3 +98,8 @@ func (q *QuestionRequest) Validate() error {
 	}
 	return nil
 }
+
+type QuestionByIdResponse struct {
+	Question   Question `json:"question"`
+	StatusCode int      `json:"statusCode"`
+}

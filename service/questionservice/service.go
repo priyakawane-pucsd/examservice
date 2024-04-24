@@ -17,6 +17,7 @@ type Config struct{}
 type Repository interface {
 	CreateOrUpdateQuestions(ctx context.Context, cfg *dao.Question) (string, error)
 	GetQuestionsList(ctx context.Context) ([]*dao.Question, error)
+	GetQuestionById(ctx context.Context, questionId string) (*dao.Question, error)
 	DeleteQuestionById(ctx context.Context, id string) error
 }
 
@@ -40,6 +41,19 @@ func (s *Service) GetQuestionsList(ctx context.Context) (*dto.ListQuestionRespon
 	}
 	response := &dto.ListQuestionResponse{
 		Questions:  ConvertToQuestionResponseList(questions),
+		StatusCode: http.StatusOK,
+	}
+	return response, nil
+}
+
+func (s *Service) GetQuestionById(ctx context.Context, questionId string) (*dto.QuestionByIdResponse, error) {
+	question, err := s.repo.GetQuestionById(ctx, questionId)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &dto.QuestionByIdResponse{
+		Question:   *QuestionsResponse(question),
 		StatusCode: http.StatusOK,
 	}
 	return response, nil

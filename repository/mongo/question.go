@@ -2,12 +2,14 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"examservice/models/dao"
 	"examservice/utils"
 	"time"
 
 	"github.com/bappaapp/goutils/logger"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -99,4 +101,46 @@ func (r *Repository) DeleteQuestionById(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (r *Repository) GetQuestionById(ctx context.Context, id string) (*dao.Question, error) {
+	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
+	filter := bson.M{"_id": id}
+	var result *dao.Question
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, utils.NewCustomError(404, "Question not found")
+		}
+		logger.Error(ctx, "Error finding question by ID: %v", err)
+		return nil, utils.NewInternalServerError("Failed to retrieve question by ID")
+	}
+	return result, nil
+}
+
+func (r *Repository) GetQuestionsCountByIds(ctx context.Context, questionIds []string) (int64, error) {
+	// Get the question collection
+	questionCollection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
+
+	filter := bson.M{"_id": bson.M{"$in": questionIds}}
+	count, err := questionCollection.CountDocuments(ctx, filter)
+	if err != nil {
+		logger.Error(ctx, "Error counting documents in questions collection: %v", err)
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *Repository) CheckAnswers(ctx context.Context, questionAnswers *dao.QuestionAnswer) (bool, error) {
+	question, err := r.GetQuestionById(ctx, questionAnswers.QuestionId)
+	if err != nil {
+		logger.Error(ctx, "Error in getting answers: %v", err)
+		return false, err
+	}
+
+	if question.Correct != questionAnswers.Answer {
+		logger.Error(ctx, "Answer is not correct for questionId: %s", questionAnswers.QuestionId)
+		return false, nil
+	}
+	return true, nil
 }

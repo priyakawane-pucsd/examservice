@@ -21,6 +21,8 @@ type Question struct {
 	Choices     []Choice `bson:"choices"`
 	Correct     string   `bson:"correct"`
 	Explanation string   `bson:"explanation"`
+	Topic       string   `bson:"topic"`
+	SubTopic    string   `bson:"subTopic"`
 	UserId      string   `bson:"userId"`
 	CreatedAt   int64    `bson:"createdAt"`
 	UpdatedAt   int64    `bson:"updatedAt"`

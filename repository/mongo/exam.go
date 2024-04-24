@@ -9,6 +9,7 @@ import (
 
 	"github.com/bappaapp/goutils/logger"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -17,50 +18,9 @@ const (
 	EXAM_COLLECTION = "exams"
 )
 
-func (r *Repository) validateQuestionIds(ctx context.Context, questionIds []string) (bool, error) {
-	// Get the question collection
-	questionCollection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
-
-	filter := bson.M{"_id": bson.M{"$in": questionIds}}
-	count, err := questionCollection.CountDocuments(ctx, filter)
-	if err != nil {
-		logger.Error(ctx, "Error counting documents in questions collection: %v", err)
-		return false, err
-	}
-	if count != int64(len(questionIds)) {
-		return false, nil // At least one ID doesn't exist
-	}
-
-	// Iterate over the question IDs and check if each ID exists in the database
-	// for _, id := range questionIds {
-	// 	filter := bson.M{"_id": id}
-	// 	count, err := questionCollection.CountDocuments(ctx, filter)
-	// 	if err != nil {
-	// 		logger.Error(ctx, "Error counting documents in questions collection: %v", err)
-	// 		return false, err
-	// 	}
-	// 	if count == 0 {
-	// 		return false, nil // At least one ID doesn't exist
-	// 	}
-	// }
-	return true, nil
-}
-
 func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) (string, error) {
 	// Specify the MongoDB collection
 	examCollection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
-
-	// Validate question IDs if provided
-	if len(req.Questions) != 0 {
-		valid, err := r.validateQuestionIds(ctx, req.Questions)
-		if err != nil {
-			logger.Error(ctx, "Error validating question IDs: %v", err)
-			return "", err
-		}
-		if !valid {
-			return "", errors.New("one or more question IDs are invalid")
-		}
-	}
 
 	// Convert created_at and updated_at to milliseconds
 	createdAtMillis := time.Now().UnixNano() / int64(time.Millisecond)
@@ -132,6 +92,21 @@ func (r *Repository) GetExamsList(ctx context.Context, topic string, subTopic st
 		return nil, utils.NewInternalServerError("Failed to decode exams")
 	}
 	return exams, nil
+}
+
+func (r *Repository) GetExamById(ctx context.Context, id string) (*dao.Exam, error) {
+	collection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
+	filter := bson.M{"_id": id}
+	var result *dao.Exam
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, utils.NewCustomError(404, "Exam not found")
+		}
+		logger.Error(ctx, "Error finding exam by ID: %v", err)
+		return nil, utils.NewInternalServerError("Failed to retrieve exam by ID")
+	}
+	return result, nil
 }
 
 func (r *Repository) DeleteExamById(ctx context.Context, id string) error {

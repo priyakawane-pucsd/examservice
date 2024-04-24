@@ -5,11 +5,18 @@ type Answer struct {
 	UserID    string           `bson:"userId"`
 	ExamID    string           `bson:"examId"`
 	Answers   []QuestionAnswer `bson:"answers"`
+	Result    Result           `bson:"result"`
 	CreatedAt int64            `bson:"createdAt"`
 	UpdatedAt int64            `bson:"updatedAt"`
 }
 
+type Result struct {
+	Attempted int64 `bson:"attempted"`
+	Correct   int64 `bson:"correct"`
+}
+
 type QuestionAnswer struct {
-	QuestionId string `bson:"questionId"`
-	Answer     string `bson:"answer"`
+	QuestionId    string `bson:"questionId"`
+	Answer        string `bson:"answer"`
+	CorrectAnswer string `bson:"correctAnswer"`
 }

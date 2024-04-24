@@ -16,6 +16,7 @@ type ExamController struct {
 type Service interface {
 	CreateOrUpdateExam(ctx context.Context, req *dto.ExamRequest) (*dto.ExamResponse, error)
 	GetExamsList(ctx context.Context, topic string, subTopic string) (*dto.ListExamsResponse, error)
+	GetExamById(ctx context.Context, examId string) (*dto.ExamByIdResponse, error)
 	DeleteExamById(ctx context.Context, examId string) (*dto.DeleteExamResponse, error)
 }
 
@@ -27,6 +28,7 @@ func (ec *ExamController) Register(router gin.IRouter) {
 	examRouter := router.Group("/examservice/exams")
 	examRouter.POST("/", ec.CreateOrUpdateExam)
 	examRouter.GET("/", ec.GetExamsList)
+	examRouter.GET("/:id", ec.GetExamById)
 	examRouter.DELETE("/:id", ec.DeleteExamById)
 }
 
@@ -92,6 +94,29 @@ func (ec *ExamController) GetExamsList(ctx *gin.Context) {
 	utils.WriteResponse(ctx, exams)
 }
 
+// @Summary Get an exam by ID
+// @Description Retrieve an exam based on the provided exam ID.
+// @Tags Exams
+// @Accept json
+// @Produce json
+// @Param id path string true "Exam ID"
+// @Success 200 {object} dto.Exam "Successful response"
+// @Failure 400 {object} utils.CustomError "Invalid request"
+// @Failure 404 {object} utils.CustomError "Exam not found"
+// @Failure 500 {object} utils.CustomError "Internal server error"
+// @Router /examservice/exams/{id} [get]
+func (ec *ExamController) GetExamById(ctx *gin.Context) {
+	// Extract the exam ID from the request context
+	examId := ctx.Param("id")
+
+	res, err := ec.service.GetExamById(ctx, examId)
+	if err != nil {
+		utils.WriteError(ctx, err)
+		return
+	}
+	utils.WriteResponse(ctx, res)
+}
+
 // DeleteExamById deletes an exam by its ID.
 // @Summary Delete an exam by ID
 // @Description Deletes an exam by its ID.
@@ -105,7 +130,6 @@ func (ec *ExamController) GetExamsList(ctx *gin.Context) {
 // @Failure 500 {object} utils.CustomError "Internal server error"
 // @Router /examservice/exams/{id} [delete]
 func (ec *ExamController) DeleteExamById(ctx *gin.Context) {
-	// Extract the exam ID from the request context
 	examId := ctx.Param("id")
 
 	// Call the service function to delete the exam by ID
