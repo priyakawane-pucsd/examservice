@@ -5,7 +5,7 @@ import (
 	"examservice/models/dto"
 )
 
-func ConvertToDAOQuestionAnswer(answer *dto.QuestionAnswer) *dao.QuestionAnswer {
+func ConvertToDaoQuestionAnswer(answer *dto.QuestionAnswer) *dao.QuestionAnswer {
 	return &dao.QuestionAnswer{
 		QuestionId: answer.QuestionId,
 		Answer:     answer.Answer,

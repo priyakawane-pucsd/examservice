@@ -12,6 +12,8 @@ type QuestionRequest struct {
 	Choices     []Choice `json:"choices"`
 	Correct     string   `json:"correct"`
 	Explanation string   `json:"explanation"`
+	Topic       string   `json:"topic"`
+	SubTopic    string   `json:"subTopic"`
 	UserId      string   `json:"userId"`
 }
 
@@ -40,6 +42,8 @@ func (r *QuestionRequest) ToMongoObject() *dao.Question {
 		Choices:     choices,
 		Correct:     r.Correct,
 		Explanation: r.Explanation,
+		Topic:       r.Topic,
+		SubTopic:    r.SubTopic,
 		UserId:      r.UserId,
 		CreatedAt:   time.Now().UnixMilli(),
 		UpdatedAt:   time.Now().UnixMilli(),
@@ -64,6 +68,8 @@ type Question struct {
 	Choices     []Choice `json:"choices"`
 	Correct     string   `json:"correct"`
 	Explanation string   `json:"explanation"`
+	Topic       string   `json:"topic"`
+	SubTopic    string   `json:"subTopic"`
 	UserId      string   `json:"userId"`
 	CreatedAt   int64    `json:"created_at,omitempty"`
 	UpdatedAt   int64    `json:"updated_at,omitempty"`

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"examservice/models/dao"
+	"examservice/models/filters"
 	"examservice/utils"
 	"time"
 
@@ -61,24 +62,24 @@ func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) (str
 	return objectId, nil
 }
 
-func (r *Repository) GetExamsList(ctx context.Context, topic string, subTopic string) ([]*dao.Exam, error) {
+func (r *Repository) GetExamsList(ctx context.Context, filter *filters.ExamFilter, limit, offset int) ([]*dao.Exam, error) {
 	// Specify the MongoDB collection
 	collection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
 
 	// Define the filter based on provided topic and subTopic
-	filter := bson.M{}
-	if topic != "" {
-		filter["topic"] = bson.M{"$regex": primitive.Regex{Pattern: topic, Options: "i"}}
+	QueryFilter := bson.M{}
+	if filter.Topic != "" {
+		QueryFilter["topic"] = filter.Topic
 	}
-	if subTopic != "" {
-		filter["sub_topic"] = bson.M{"$regex": primitive.Regex{Pattern: subTopic, Options: "i"}}
+	if filter.SubTopic != "" {
+		QueryFilter["sub_topic"] = filter.SubTopic
 	}
 
 	// Define options for the find operation
-	findOptions := options.Find().SetSort(bson.M{"createdAt": -1})
+	findOptions := options.Find().SetSort(bson.M{"createdAt": -1}).SetLimit(int64(limit)).SetSkip(int64(offset))
 
 	// Execute the find operation to retrieve all questions
-	cursor, err := collection.Find(ctx, filter, findOptions)
+	cursor, err := collection.Find(ctx, QueryFilter, findOptions)
 	if err != nil {
 		logger.Error(ctx, "Error retrieving exams: %v", err)
 		return nil, utils.NewInternalServerError("Failed to retrieve exams from the database")

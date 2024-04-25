@@ -3,7 +3,9 @@ package question
 import (
 	"context"
 	"examservice/models/dto"
+	"examservice/models/filters"
 	"examservice/utils"
+	"strconv"
 
 	"github.com/bappaapp/goutils/logger"
 	"github.com/gin-gonic/gin"
@@ -17,7 +19,7 @@ type Service interface {
 	CreateOrUpdateQuestions(ctx context.Context, req *dto.QuestionRequest) (*dto.QuestionResponse, error)
 
 	//todo use filters to fetch questions
-	GetQuestionsList(ctx context.Context) (*dto.ListQuestionResponse, error)
+	GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) (*dto.ListQuestionResponse, error)
 	DeleteQuestionById(ctx context.Context, questionId string) (*dto.DeleteQuestionResponse, error)
 	GetQuestionById(ctx context.Context, questionId string) (*dto.QuestionByIdResponse, error)
 }
@@ -73,12 +75,39 @@ func (qc *QuestionController) CreateOrUpdateQuestions(ctx *gin.Context) {
 // @Tags Questions
 // @Accept json
 // @Produce json
+// @Param topic query string false "Filter by topic"
+// @Param subTopic query string false "Filter by subTopic"
+// @Param userId query string false "Filter by userId"
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {array} dto.ListQuestionResponse "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request"
 // @Failure 500 {object} utils.CustomError "Internal server error"
 // @Router /examservice/questions/ [get]
 func (qc *QuestionController) GetQuestionsList(ctx *gin.Context) {
-	configs, err := qc.service.GetQuestionsList(ctx)
+	// Get the topic and subTopic query parameters
+	topic := ctx.Query("topic")
+	subTopic := ctx.Query("subTopic")
+	userId := ctx.Query("userId")
+
+	limitStr := ctx.DefaultQuery("limit", "10")
+	offsetStr := ctx.DefaultQuery("offset", "0")
+
+	// Parse limit into an integer
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		utils.WriteError(ctx, err)
+		return
+	}
+
+	// Parse offset into an integer
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil {
+		utils.WriteError(ctx, err)
+		return
+	}
+
+	configs, err := qc.service.GetQuestionsList(ctx, &filters.QuestionFilter{Topic: topic, SubTopic: subTopic, UserId: userId}, limit, offset)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return

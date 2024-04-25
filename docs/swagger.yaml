@@ -131,7 +131,11 @@ definitions:
         type: integer
       explanation:
         type: string
+      subTopic:
+        type: string
       text:
+        type: string
+      topic:
         type: string
       updated_at:
         type: integer
@@ -166,7 +170,11 @@ definitions:
         type: string
       explanation:
         type: string
+      subTopic:
+        type: string
       text:
+        type: string
+      topic:
         type: string
       userId:
         type: string
@@ -270,6 +278,16 @@ paths:
         in: query
         name: subTopic
         type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -408,6 +426,29 @@ paths:
       consumes:
       - application/json
       description: Retrieve a list of all questions.
+      parameters:
+      - description: Filter by topic
+        in: query
+        name: topic
+        type: string
+      - description: Filter by subTopic
+        in: query
+        name: subTopic
+        type: string
+      - description: Filter by userId
+        in: query
+        name: userId
+        type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:

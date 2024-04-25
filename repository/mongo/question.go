@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"examservice/models/dao"
+	"examservice/models/filters"
 	"examservice/utils"
 	"time"
 
@@ -23,18 +24,18 @@ func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Quest
 	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
 
 	// Convert created_at and updated_at to milliseconds
-	createdAtMillis := time.Now().UnixNano() / int64(time.Millisecond)
-	updatedAtMillis := createdAtMillis // Assume created_at and updated_at are the same initially
+	req.CreatedAt = time.Now().UnixNano() / int64(time.Millisecond)
+	req.UpdatedAt = req.CreatedAt // Assume created_at and updated_at are the same initially
 
-	question := bson.M{
-		"text":        req.Text,
-		"choices":     req.Choices,
-		"correct":     req.Correct,
-		"explanation": req.Explanation,
-		"userId":      req.UserId,
-		"createdAt":   createdAtMillis,
-		"updatedAt":   updatedAtMillis,
-	}
+	// question := bson.M{
+	// 	"text":        req.Text,
+	// 	"choices":     req.Choices,
+	// 	"correct":     req.Correct,
+	// 	"explanation": req.Explanation,
+	// 	"userId":      req.UserId,
+	// 	"createdAt":   createdAtMillis,
+	// 	"updatedAt":   updatedAtMillis,
+	// }
 
 	// Set the ID of the question
 	objectID := ""
@@ -46,7 +47,9 @@ func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Quest
 
 	// Upsert the question document into the collection
 	filter := bson.M{"_id": objectID}
-	update := bson.M{"$set": question}
+	// update := bson.M{"$set": question}
+	update := bson.M{"$set": req}
+
 	opts := options.Update().SetUpsert(true)
 
 	_, err := collection.UpdateOne(ctx, filter, update, opts)
@@ -58,15 +61,27 @@ func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Quest
 	return objectID, nil
 }
 
-func (r *Repository) GetQuestionsList(ctx context.Context) ([]*dao.Question, error) {
+func (r *Repository) GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) ([]*dao.Question, error) {
 	// Specify the MongoDB collection
 	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
 
+	// Define the filter based on provided topic and subTopic
+	QueryFilter := bson.M{}
+	if filter.Topic != "" {
+		QueryFilter["topic"] = filter.Topic
+	}
+	if filter.SubTopic != "" {
+		QueryFilter["sub_topic"] = filter.SubTopic
+	}
+	if filter.UserId != "" {
+		QueryFilter["userId"] = filter.UserId
+	}
+
 	// Define options for the find operation
-	findOptions := options.Find().SetSort(bson.M{"createdAt": -1})
+	findOptions := options.Find().SetSort(bson.M{"createdAt": -1}).SetLimit(int64(limit)).SetSkip(int64(offset))
 
 	// Execute the find operation to retrieve all questions
-	cursor, err := collection.Find(ctx, bson.M{}, findOptions)
+	cursor, err := collection.Find(ctx, QueryFilter, findOptions)
 	if err != nil {
 		logger.Error(ctx, "Error retrieving questions: %v", err)
 		return nil, utils.NewInternalServerError("Failed to retrieve questions from the database")

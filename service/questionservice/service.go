@@ -4,6 +4,7 @@ import (
 	"context"
 	"examservice/models/dao"
 	"examservice/models/dto"
+	"examservice/models/filters"
 	"net/http"
 )
 
@@ -16,7 +17,7 @@ type Config struct{}
 
 type Repository interface {
 	CreateOrUpdateQuestions(ctx context.Context, cfg *dao.Question) (string, error)
-	GetQuestionsList(ctx context.Context) ([]*dao.Question, error)
+	GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) ([]*dao.Question, error)
 	GetQuestionById(ctx context.Context, questionId string) (*dao.Question, error)
 	DeleteQuestionById(ctx context.Context, id string) error
 }
@@ -34,8 +35,8 @@ func (s *Service) CreateOrUpdateQuestions(ctx context.Context, req *dto.Question
 	return &dto.QuestionResponse{StatusCode: http.StatusCreated, Id: objectId}, nil
 }
 
-func (s *Service) GetQuestionsList(ctx context.Context) (*dto.ListQuestionResponse, error) {
-	questions, err := s.repo.GetQuestionsList(ctx)
+func (s *Service) GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) (*dto.ListQuestionResponse, error) {
+	questions, err := s.repo.GetQuestionsList(ctx, filter, limit, offset)
 	if err != nil {
 		return nil, err
 	}

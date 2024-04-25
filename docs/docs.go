@@ -132,6 +132,20 @@ const docTemplate = `{
                         "description": "Filter by subTopic",
                         "name": "subTopic",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -344,6 +358,40 @@ const docTemplate = `{
                     "Questions"
                 ],
                 "summary": "Get all questions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by topic",
+                        "name": "topic",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by subTopic",
+                        "name": "subTopic",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by userId",
+                        "name": "userId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -671,7 +719,13 @@ const docTemplate = `{
                 "explanation": {
                     "type": "string"
                 },
+                "subTopic": {
+                    "type": "string"
+                },
                 "text": {
+                    "type": "string"
+                },
+                "topic": {
                     "type": "string"
                 },
                 "updated_at": {
@@ -725,7 +779,13 @@ const docTemplate = `{
                 "explanation": {
                     "type": "string"
                 },
+                "subTopic": {
+                    "type": "string"
+                },
                 "text": {
+                    "type": "string"
+                },
+                "topic": {
                     "type": "string"
                 },
                 "userId": {

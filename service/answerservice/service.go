@@ -5,7 +5,6 @@ import (
 	"errors"
 	"examservice/models/dao"
 	"examservice/models/dto"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -59,8 +58,7 @@ func (s *Service) CreateOrUpdateAnswer(ctx context.Context, req *dto.AnswerReque
 		logger.Error(ctx, "failed to validate exam ID: %v", err)
 		return nil, err
 	}
-
-	fmt.Println("exam", exam.StartTime)
+	//fmt.Println("exam", exam.StartTime)
 
 	//validate time of submission
 	valid, err := s.ValidateSubmissionTime(ctx, exam.StartTime, exam.EndTime)
@@ -72,9 +70,11 @@ func (s *Service) CreateOrUpdateAnswer(ctx context.Context, req *dto.AnswerReque
 		return nil, errors.New("submission is not allowed")
 	}
 
+	//
+
 	//check each answers
 	for _, answer := range req.Answers {
-		daoAnswer := ConvertToDAOQuestionAnswer(&answer)
+		daoAnswer := ConvertToDaoQuestionAnswer(&answer)
 		isValidAnswers, err := s.repo.CheckAnswers(ctx, daoAnswer)
 		if err != nil {
 			logger.Error(ctx, "Error validating answers: %v", err)
