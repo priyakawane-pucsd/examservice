@@ -146,16 +146,30 @@ func (r *Repository) GetQuestionsCountByIds(ctx context.Context, questionIds []s
 	return count, nil
 }
 
-func (r *Repository) CheckAnswers(ctx context.Context, questionAnswers *dao.QuestionAnswer) (bool, error) {
-	question, err := r.GetQuestionById(ctx, questionAnswers.QuestionId)
+func (r *Repository) GetQuestionsByFilters(ctx context.Context, questionIds []string) ([]*dao.Question, error) {
+	// Specify the MongoDB collection
+	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
+
+	// Define the filter based on provided topic and subTopic
+	filter := bson.M{"_id": bson.M{"$in": questionIds}}
+
+	// Define options for the find operation
+	findOptions := options.Find()
+
+	// Execute the find operation to retrieve all questions
+	cursor, err := collection.Find(ctx, filter, findOptions)
 	if err != nil {
-		logger.Error(ctx, "Error in getting answers: %v", err)
-		return false, err
+		logger.Error(ctx, "Error retrieving questions: %v", err)
+		return nil, utils.NewInternalServerError("Failed to retrieve questions from the database")
+	}
+	defer cursor.Close(ctx)
+
+	// Decode all documents into a slice of dao.Question objects
+	var questions []*dao.Question
+	if err := cursor.All(ctx, &questions); err != nil {
+		logger.Error(ctx, "Error decoding questions: %v", err)
+		return nil, utils.NewInternalServerError("Failed to decode questions")
 	}
 
-	if question.Correct != questionAnswers.Answer {
-		logger.Error(ctx, "Answer is not correct for questionId: %s", questionAnswers.QuestionId)
-		return false, nil
-	}
-	return true, nil
+	return questions, nil
 }

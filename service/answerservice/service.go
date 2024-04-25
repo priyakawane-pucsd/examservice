@@ -5,6 +5,7 @@ import (
 	"errors"
 	"examservice/models/dao"
 	"examservice/models/dto"
+	"examservice/service/questionservice"
 	"net/http"
 	"time"
 
@@ -21,7 +22,7 @@ type Config struct{}
 type Repository interface {
 	CreateOrUpdateAnswer(ctx context.Context, cfg *dao.Answer) (string, error)
 	GetExamById(ctx context.Context, examId string) (*dao.Exam, error)
-	CheckAnswers(ctx context.Context, questionAnswers *dao.QuestionAnswer) (bool, error)
+	GetQuestionsByFilters(ctx context.Context, questionIds []string) ([]*dao.Question, error)
 }
 
 func NewService(ctx context.Context, conf *Config, repo Repository) *Service {
@@ -51,6 +52,35 @@ func (s *Service) ValidateSubmissionTime(ctx context.Context, startTime int64, e
 	return false, nil
 }
 
+func (s *Service) CheckAnswers(ctx context.Context, questions []string, answers []dto.QuestionAnswer) (int, error) {
+	//GetQuestions
+	questionsList, err := s.repo.GetQuestionsByFilters(ctx, questions)
+	if err != nil {
+		return 0, err
+	}
+	questionsResult := questionservice.ConvertToQuestionResponseList(questionsList)
+
+	// Create a map of question IDs to correct answers
+	correctAnswers := make(map[string]string)
+	for _, q := range questionsResult {
+		correctAnswers[q.ID] = q.Correct
+	}
+
+	//validate each answer
+	correctCount := 0
+	for _, answer := range answers {
+		correctAnswer, ok := correctAnswers[answer.QuestionId]
+		if !ok {
+			logger.Error(ctx, "question with ID %s not found", answer.QuestionId)
+			return 0, err
+		}
+		if answer.Answer == correctAnswer {
+			correctCount += 1
+		}
+	}
+	return correctCount, nil
+}
+
 func (s *Service) CreateOrUpdateAnswer(ctx context.Context, req *dto.AnswerRequest) (*dto.AnswerResponse, error) {
 	//validate examId
 	exam, err := s.repo.GetExamById(ctx, req.ExamID)
@@ -58,7 +88,6 @@ func (s *Service) CreateOrUpdateAnswer(ctx context.Context, req *dto.AnswerReque
 		logger.Error(ctx, "failed to validate exam ID: %v", err)
 		return nil, err
 	}
-	//fmt.Println("exam", exam.StartTime)
 
 	//validate time of submission
 	valid, err := s.ValidateSubmissionTime(ctx, exam.StartTime, exam.EndTime)
@@ -70,20 +99,16 @@ func (s *Service) CreateOrUpdateAnswer(ctx context.Context, req *dto.AnswerReque
 		return nil, errors.New("submission is not allowed")
 	}
 
-	//
-
-	//check each answers
-	for _, answer := range req.Answers {
-		daoAnswer := ConvertToDaoQuestionAnswer(&answer)
-		isValidAnswers, err := s.repo.CheckAnswers(ctx, daoAnswer)
-		if err != nil {
-			logger.Error(ctx, "Error validating answers: %v", err)
-			return nil, err
-		}
-		if !isValidAnswers {
-			return nil, errors.New("one or more answers invalid")
-		}
+	//Check Question answers
+	corrected, err := s.CheckAnswers(ctx, exam.Questions, req.Answers)
+	if err != nil {
+		logger.Error(ctx, "Error validating answers: %v", err)
+		return nil, err
 	}
+
+	//update result
+	req.Result.Attempted = int64(len(req.Answers))
+	req.Result.Correct = int64(corrected)
 
 	ans := req.ToMongoObject()
 	objectId, err := s.repo.CreateOrUpdateAnswer(ctx, ans)
