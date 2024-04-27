@@ -43,6 +43,7 @@ func (ec *ExamController) Register(router gin.IRouter) {
 // @Accept json
 // @Produce json
 // @Param request body dto.ExamRequest true "Exam request body"
+// @Param X-USER-ID header string true "User ID"
 // @Success 200 {object} dto.ExamResponse "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request body"
 // @Failure 500 {object} utils.CustomError "Internal server error"
@@ -61,6 +62,7 @@ func (ec *ExamController) CreateOrUpdateExam(ctx *gin.Context) {
 		utils.WriteError(ctx, utils.NewBadRequestError(err.Error()))
 		return
 	}
+	ctx.GetHeader("X-USER-ID")
 
 	res, err := ec.service.CreateOrUpdateExam(ctx, &req)
 	if err != nil {
@@ -80,6 +82,7 @@ func (ec *ExamController) CreateOrUpdateExam(ctx *gin.Context) {
 // @Param subTopic query string false "Filter by subTopic"
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
+// @Param X-USER-ID header string true "User ID"
 // @Success 200 {array} dto.ListExamsResponse "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request"
 // @Failure 500 {object} utils.CustomError "Internal server error"
@@ -121,6 +124,7 @@ func (ec *ExamController) GetExamsList(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Exam ID"
+// @Param X-USER-ID header string true "User ID"
 // @Success 200 {object} dto.Exam "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request"
 // @Failure 404 {object} utils.CustomError "Exam not found"
@@ -145,6 +149,7 @@ func (ec *ExamController) GetExamById(ctx *gin.Context) {
 // @Param id path string true "Exam ID"
 // @Accept json
 // @Produce json
+// @Param X-USER-ID header string true "User ID"
 // @Success 200 {object} dto.ExamResponse "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request"
 // @Failure 404 {object} utils.CustomError "Exam not found"

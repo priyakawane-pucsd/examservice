@@ -20,22 +20,11 @@ const (
 )
 
 func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Question) (string, error) {
-	// Specify the MongoDB collection
 	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
 
 	// Convert created_at and updated_at to milliseconds
 	req.CreatedAt = time.Now().UnixNano() / int64(time.Millisecond)
-	req.UpdatedAt = req.CreatedAt // Assume created_at and updated_at are the same initially
-
-	// question := bson.M{
-	// 	"text":        req.Text,
-	// 	"choices":     req.Choices,
-	// 	"correct":     req.Correct,
-	// 	"explanation": req.Explanation,
-	// 	"userId":      req.UserId,
-	// 	"createdAt":   createdAtMillis,
-	// 	"updatedAt":   updatedAtMillis,
-	// }
+	req.UpdatedAt = req.CreatedAt //Assume created_at and updated_at are the same initially
 
 	// Set the ID of the question
 	objectID := ""
@@ -47,17 +36,13 @@ func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Quest
 
 	// Upsert the question document into the collection
 	filter := bson.M{"_id": objectID}
-	// update := bson.M{"$set": question}
 	update := bson.M{"$set": req}
-
 	opts := options.Update().SetUpsert(true)
-
 	_, err := collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		logger.Error(ctx, "Error upserting question: %v", err)
 		return "", utils.NewInternalServerError("Failed to upsert question into the database")
 	}
-
 	return objectID, nil
 }
 
@@ -71,7 +56,7 @@ func (r *Repository) GetQuestionsList(ctx context.Context, filter *filters.Quest
 		QueryFilter["topic"] = filter.Topic
 	}
 	if filter.SubTopic != "" {
-		QueryFilter["sub_topic"] = filter.SubTopic
+		QueryFilter["subTopic"] = filter.SubTopic
 	}
 	if filter.UserId != "" {
 		QueryFilter["userId"] = filter.UserId

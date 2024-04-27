@@ -9,8 +9,6 @@ definitions:
         type: array
       examId:
         type: string
-      result:
-        $ref: '#/definitions/dto.Result'
       userId:
         type: string
     type: object
@@ -32,54 +30,56 @@ definitions:
     properties:
       _id:
         type: string
-      created_at:
+      createdAt:
         type: integer
       description:
         type: string
-      difficulty_level:
+      difficultyLevel:
         type: string
       duration:
         type: integer
-      end_time:
+      endTime:
         type: integer
-      exam_fee:
+      examFee:
         type: number
       questions:
         items:
           type: string
         type: array
-      start_time:
+      startTime:
         type: integer
-      sub_topic:
+      subTopic:
         type: string
       title:
         type: string
       topic:
         type: string
-      updated_at:
+      updatedAt:
         type: integer
     type: object
   dto.ExamRequest:
     properties:
       _id:
         type: string
+      createdBy:
+        type: integer
       description:
         type: string
-      difficulty_level:
+      difficultyLevel:
         type: string
       duration:
         type: integer
-      end_time:
+      endTime:
         type: integer
-      exam_fee:
+      examFee:
         type: number
       questions:
         items:
           type: string
         type: array
-      start_time:
+      startTime:
         type: integer
-      sub_topic:
+      subTopic:
         type: string
       title:
         type: string
@@ -127,7 +127,7 @@ definitions:
         type: array
       correct:
         type: string
-      created_at:
+      createdAt:
         type: integer
       explanation:
         type: string
@@ -137,7 +137,7 @@ definitions:
         type: string
       topic:
         type: string
-      updated_at:
+      updatedAt:
         type: integer
       userId:
         type: string
@@ -186,13 +186,6 @@ definitions:
       statusCode:
         type: integer
     type: object
-  dto.Result:
-    properties:
-      attempted:
-        type: integer
-      correct:
-        type: integer
-    type: object
   utils.CustomError:
     properties:
       message:
@@ -209,6 +202,11 @@ paths:
       - application/json
       description: Creates or updates an answer based on the provided request body.
       parameters:
+      - description: User ID
+        in: header
+        name: X-USER-ID
+        required: true
+        type: string
       - description: Answer request body
         in: body
         name: body
@@ -246,6 +244,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/dto.ExamRequest'
+      - description: User ID
+        in: header
+        name: X-USER-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -288,6 +291,11 @@ paths:
         in: query
         name: offset
         type: integer
+      - description: User ID
+        in: header
+        name: X-USER-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -317,6 +325,11 @@ paths:
       - description: Exam ID
         in: path
         name: id
+        required: true
+        type: string
+      - description: User ID
+        in: header
+        name: X-USER-ID
         required: true
         type: string
       produces:
@@ -349,6 +362,11 @@ paths:
       - description: Exam ID
         in: path
         name: id
+        required: true
+        type: string
+      - description: User ID
+        in: header
+        name: X-USER-ID
         required: true
         type: string
       produces:
@@ -397,6 +415,11 @@ paths:
       - application/json
       description: Create or update questions based on the request
       parameters:
+      - description: User ID
+        in: header
+        name: X-USER-ID
+        required: true
+        type: string
       - description: Question request body
         in: body
         name: request
@@ -427,6 +450,11 @@ paths:
       - application/json
       description: Retrieve a list of all questions.
       parameters:
+      - description: User ID
+        in: header
+        name: X-USER-ID
+        required: true
+        type: string
       - description: Filter by topic
         in: query
         name: topic
@@ -480,6 +508,11 @@ paths:
         name: id
         required: true
         type: string
+      - description: User ID
+        in: header
+        name: X-USER-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -507,6 +540,11 @@ paths:
       - application/json
       description: Retrieves a question based on the provided ID.
       parameters:
+      - description: User ID
+        in: header
+        name: X-USER-ID
+        required: true
+        type: string
       - description: Question ID
         in: path
         name: id

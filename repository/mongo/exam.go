@@ -34,7 +34,7 @@ func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) (str
 		"endTime":         req.EndTime,
 		"duration":        req.Duration,
 		"topic":           req.Topic,
-		"sub_topic":       req.SubTopic,
+		"subTopic":        req.SubTopic,
 		"questions":       req.Questions,
 		"examFee":         req.ExamFee,
 		"difficultyLevel": req.DifficultyLevel,

@@ -11,14 +11,15 @@ type ExamRequest struct {
 	ID              string   `json:"_id,omitempty"`
 	Title           string   `json:"title"`
 	Description     string   `json:"description"`
-	StartTime       int64    `json:"start_time"`
-	EndTime         int64    `json:"end_time"`
+	StartTime       int64    `json:"startTime"`
+	EndTime         int64    `json:"endTime"`
 	Duration        int      `json:"duration"`
 	Questions       []string `json:"questions"`
 	Topic           string   `json:"topic"`
-	SubTopic        string   `json:"sub_topic"`
-	ExamFee         float64  `json:"exam_fee"`
-	DifficultyLevel string   `json:"difficulty_level"`
+	SubTopic        string   `json:"subTopic"`
+	ExamFee         float64  `json:"examFee"`
+	DifficultyLevel string   `json:"difficultyLevel"`
+	CreatedBy       int64    `json:"createdBy"`
 }
 
 var validDifficultLevels = map[string]bool{
@@ -82,20 +83,19 @@ type ExamResponse struct {
 }
 
 type Exam struct {
-	ID          string   `json:"_id,omitempty"`
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	StartTime   int64    `json:"start_time"`
-	EndTime     int64    `json:"end_time"`
-	Duration    int      `json:"duration"`
-	Questions   []string `json:"questions"`
-	Topic       string   `json:"topic"`
-	SubTopic    string   `json:"sub_topic"`
-
-	ExamFee         float64 `json:"exam_fee"`
-	DifficultyLevel string  `json:"difficulty_level"`
-	CreatedAt       int64   `json:"created_at,omitempty"`
-	UpdatedAt       int64   `json:"updated_at,omitempty"`
+	ID              string   `json:"_id,omitempty"`
+	Title           string   `json:"title"`
+	Description     string   `json:"description"`
+	StartTime       int64    `json:"startTime"`
+	EndTime         int64    `json:"endTime"`
+	Duration        int      `json:"duration"`
+	Questions       []string `json:"questions"`
+	Topic           string   `json:"topic"`
+	SubTopic        string   `json:"subTopic"`
+	ExamFee         float64  `json:"examFee"`
+	DifficultyLevel string   `json:"difficultyLevel"`
+	CreatedAt       int64    `json:"createdAt,omitempty"`
+	UpdatedAt       int64    `json:"updatedAt,omitempty"`
 }
 
 func (r *ExamRequest) ToMongoObject() *dao.Exam {

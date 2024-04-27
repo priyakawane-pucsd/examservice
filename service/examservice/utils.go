@@ -16,16 +16,18 @@ func ConvertToExamResponseList(exams []*dao.Exam) []dto.Exam {
 
 func ExamsResponse(exam *dao.Exam) *dto.Exam {
 	return &dto.Exam{
-		ID:          exam.ID,
-		Title:       exam.Title,
-		Description: exam.Description,
-		StartTime:   exam.StartTime,
-		EndTime:     exam.EndTime,
-		Duration:    exam.Duration,
-		Questions:   exam.Questions,
-		Topic:       exam.Topic,
-		SubTopic:    exam.SubTopic,
-		CreatedAt:   exam.CreatedAt,
-		UpdatedAt:   exam.UpdatedAt,
+		ID:              exam.ID,
+		Title:           exam.Title,
+		Description:     exam.Description,
+		StartTime:       exam.StartTime,
+		EndTime:         exam.EndTime,
+		Duration:        exam.Duration,
+		Questions:       exam.Questions,
+		Topic:           exam.Topic,
+		ExamFee:         exam.ExamFee,
+		DifficultyLevel: exam.DifficultyLevel,
+		SubTopic:        exam.SubTopic,
+		CreatedAt:       exam.CreatedAt,
+		UpdatedAt:       exam.UpdatedAt,
 	}
 }

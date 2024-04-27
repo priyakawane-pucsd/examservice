@@ -30,6 +30,13 @@ const docTemplate = `{
                 "summary": "Create or update answer",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Answer request body",
                         "name": "body",
                         "in": "body",
@@ -83,6 +90,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.ExamRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -146,6 +160,13 @@ const docTemplate = `{
                         "description": "Offset",
                         "name": "offset",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -192,6 +213,13 @@ const docTemplate = `{
                         "description": "Exam ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -240,6 +268,13 @@ const docTemplate = `{
                         "description": "Exam ID",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -314,6 +349,13 @@ const docTemplate = `{
                 "summary": "Create or update questions",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Question request body",
                         "name": "request",
                         "in": "body",
@@ -359,6 +401,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get all questions",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Filter by topic",
@@ -433,6 +482,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Question ID",
                         "name": "id",
                         "in": "path",
@@ -485,6 +541,13 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -532,9 +595,6 @@ const docTemplate = `{
                 "examId": {
                     "type": "string"
                 },
-                "result": {
-                    "$ref": "#/definitions/dto.Result"
-                },
                 "userId": {
                     "type": "string"
                 }
@@ -568,22 +628,22 @@ const docTemplate = `{
                 "_id": {
                     "type": "string"
                 },
-                "created_at": {
+                "createdAt": {
                     "type": "integer"
                 },
                 "description": {
                     "type": "string"
                 },
-                "difficulty_level": {
+                "difficultyLevel": {
                     "type": "string"
                 },
                 "duration": {
                     "type": "integer"
                 },
-                "end_time": {
+                "endTime": {
                     "type": "integer"
                 },
-                "exam_fee": {
+                "examFee": {
                     "type": "number"
                 },
                 "questions": {
@@ -592,10 +652,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "start_time": {
+                "startTime": {
                     "type": "integer"
                 },
-                "sub_topic": {
+                "subTopic": {
                     "type": "string"
                 },
                 "title": {
@@ -604,7 +664,7 @@ const docTemplate = `{
                 "topic": {
                     "type": "string"
                 },
-                "updated_at": {
+                "updatedAt": {
                     "type": "integer"
                 }
             }
@@ -615,19 +675,22 @@ const docTemplate = `{
                 "_id": {
                     "type": "string"
                 },
+                "createdBy": {
+                    "type": "integer"
+                },
                 "description": {
                     "type": "string"
                 },
-                "difficulty_level": {
+                "difficultyLevel": {
                     "type": "string"
                 },
                 "duration": {
                     "type": "integer"
                 },
-                "end_time": {
+                "endTime": {
                     "type": "integer"
                 },
-                "exam_fee": {
+                "examFee": {
                     "type": "number"
                 },
                 "questions": {
@@ -636,10 +699,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "start_time": {
+                "startTime": {
                     "type": "integer"
                 },
-                "sub_topic": {
+                "subTopic": {
                     "type": "string"
                 },
                 "title": {
@@ -713,7 +776,7 @@ const docTemplate = `{
                 "correct": {
                     "type": "string"
                 },
-                "created_at": {
+                "createdAt": {
                     "type": "integer"
                 },
                 "explanation": {
@@ -728,7 +791,7 @@ const docTemplate = `{
                 "topic": {
                     "type": "string"
                 },
-                "updated_at": {
+                "updatedAt": {
                     "type": "integer"
                 },
                 "userId": {
@@ -800,17 +863,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "statusCode": {
-                    "type": "integer"
-                }
-            }
-        },
-        "dto.Result": {
-            "type": "object",
-            "properties": {
-                "attempted": {
-                    "type": "integer"
-                },
-                "correct": {
                     "type": "integer"
                 }
             }

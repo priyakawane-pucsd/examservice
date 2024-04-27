@@ -23,7 +23,7 @@ type QuestionResponse struct {
 }
 
 type DeleteQuestionResponse struct {
-	Message    string `json:"_id,omitempty"`
+	Message    string `json:"message"`
 	StatusCode int    `json:"statusCode"`
 }
 
@@ -71,8 +71,8 @@ type Question struct {
 	Topic       string   `json:"topic"`
 	SubTopic    string   `json:"subTopic"`
 	UserId      string   `json:"userId"`
-	CreatedAt   int64    `json:"created_at,omitempty"`
-	UpdatedAt   int64    `json:"updated_at,omitempty"`
+	CreatedAt   int64    `json:"createdAt,omitempty"`
+	UpdatedAt   int64    `json:"updatedAt,omitempty"`
 }
 
 func (q *QuestionRequest) Validate() error {

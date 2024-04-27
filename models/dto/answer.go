@@ -11,7 +11,6 @@ type AnswerRequest struct {
 	UserID  string           `json:"userId"`
 	ExamID  string           `json:"examId"`
 	Answers []QuestionAnswer `json:"answers"`
-	Result  Result           `json:"result"`
 }
 
 type Result struct {
@@ -52,14 +51,10 @@ func (ar *AnswerRequest) ToMongoObject() *dao.Answer {
 	}
 
 	return &dao.Answer{
-		ID:      ar.ID,
-		UserID:  ar.UserID,
-		ExamID:  ar.ExamID,
-		Answers: answers,
-		Result: dao.Result{
-			Attempted: ar.Result.Attempted,
-			Correct:   ar.Result.Correct,
-		},
+		ID:        ar.ID,
+		UserID:    ar.UserID,
+		ExamID:    ar.ExamID,
+		Answers:   answers,
 		CreatedAt: time.Now().UnixMilli(),
 		UpdatedAt: time.Now().UnixMilli(),
 	}

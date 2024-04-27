@@ -31,6 +31,7 @@ func (ac *AnswerController) Register(router gin.IRouter) {
 // @Tags Answers
 // @Accept json
 // @Produce json
+// @Param X-USER-ID header string true "User ID"
 // @Param body body dto.AnswerRequest true "Answer request body"
 // @Success 200 {object} dto.AnswerResponse "Successful operation"
 // @Failure 400 {object} utils.CustomError "Invalid request body"

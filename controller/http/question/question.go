@@ -41,6 +41,7 @@ func (qc *QuestionController) Register(router gin.IRouter) {
 // @Tags Questions
 // @Accept json
 // @Produce json
+// @Param X-USER-ID header string true "User ID"
 // @Param request body dto.QuestionRequest true "Question request body"
 // @Success 200 {object} dto.QuestionResponse "Successfully created or updated questions"
 // @Failure 400 {object} utils.CustomError "Invalid request body"
@@ -75,6 +76,7 @@ func (qc *QuestionController) CreateOrUpdateQuestions(ctx *gin.Context) {
 // @Tags Questions
 // @Accept json
 // @Produce json
+// @Param X-USER-ID header string true "User ID"
 // @Param topic query string false "Filter by topic"
 // @Param subTopic query string false "Filter by subTopic"
 // @Param userId query string false "Filter by userId"
@@ -121,6 +123,7 @@ func (qc *QuestionController) GetQuestionsList(ctx *gin.Context) {
 // @Tags Questions
 // @Accept json
 // @Produce json
+// @Param X-USER-ID header string true "User ID"
 // @Param id path string true "Question ID"
 // @Success 200 {object} dto.QuestionByIdResponse "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request"
@@ -146,6 +149,7 @@ func (qc *QuestionController) GetQuestionById(ctx *gin.Context) {
 // @Param id path string true "Question ID"
 // @Accept json
 // @Produce json
+// @Param X-USER-ID header string true "User ID"
 // @Success 200 {object} dto.QuestionResponse "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request"
 // @Failure 404 {object} utils.CustomError "Question not found"

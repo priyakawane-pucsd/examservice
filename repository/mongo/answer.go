@@ -36,7 +36,6 @@ func (r *Repository) CreateOrUpdateAnswer(ctx context.Context, req *dao.Answer) 
 	filter := bson.M{"_id": objectID}
 	update := bson.M{"$set": req}
 	opts := options.Update().SetUpsert(true)
-
 	_, err := collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		logger.Error(ctx, "Error upserting question: %v", err)

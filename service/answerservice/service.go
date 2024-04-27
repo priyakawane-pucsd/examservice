@@ -5,7 +5,6 @@ import (
 	"errors"
 	"examservice/models/dao"
 	"examservice/models/dto"
-	"examservice/service/questionservice"
 	"net/http"
 	"time"
 
@@ -58,11 +57,10 @@ func (s *Service) CheckAnswers(ctx context.Context, questions []string, answers 
 	if err != nil {
 		return 0, err
 	}
-	questionsResult := questionservice.ConvertToQuestionResponseList(questionsList)
 
 	// Create a map of question IDs to correct answers
 	correctAnswers := make(map[string]string)
-	for _, q := range questionsResult {
+	for _, q := range questionsList {
 		correctAnswers[q.ID] = q.Correct
 	}
 
@@ -72,7 +70,7 @@ func (s *Service) CheckAnswers(ctx context.Context, questions []string, answers 
 		correctAnswer, ok := correctAnswers[answer.QuestionId]
 		if !ok {
 			logger.Error(ctx, "question with ID %s not found", answer.QuestionId)
-			return 0, err
+			continue
 		}
 		if answer.Answer == correctAnswer {
 			correctCount += 1
@@ -102,15 +100,13 @@ func (s *Service) CreateOrUpdateAnswer(ctx context.Context, req *dto.AnswerReque
 	//Check Question answers
 	corrected, err := s.CheckAnswers(ctx, exam.Questions, req.Answers)
 	if err != nil {
-		logger.Error(ctx, "Error validating answers: %v", err)
 		return nil, err
 	}
-
-	//update result
-	req.Result.Attempted = int64(len(req.Answers))
-	req.Result.Correct = int64(corrected)
-
 	ans := req.ToMongoObject()
+
+	ans.Result.Attempted = int64(len(req.Answers))
+	ans.Result.Correct = int64(corrected)
+
 	objectId, err := s.repo.CreateOrUpdateAnswer(ctx, ans)
 	if err != nil {
 		return nil, err
