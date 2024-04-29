@@ -1,15 +1,11 @@
 definitions:
   dto.AnswerRequest:
     properties:
-      _id:
-        type: string
       answers:
         items:
           $ref: '#/definitions/dto.QuestionAnswer'
         type: array
       examId:
-        type: string
-      userId:
         type: string
     type: object
   dto.AnswerResponse:
@@ -32,6 +28,8 @@ definitions:
         type: string
       createdAt:
         type: integer
+      createdBy:
+        type: integer
       description:
         type: string
       difficultyLevel:
@@ -42,6 +40,8 @@ definitions:
         type: integer
       examFee:
         type: number
+      isDeleted:
+        type: boolean
       questions:
         items:
           type: string
@@ -59,10 +59,6 @@ definitions:
     type: object
   dto.ExamRequest:
     properties:
-      _id:
-        type: string
-      createdBy:
-        type: integer
       description:
         type: string
       difficultyLevel:
@@ -129,8 +125,12 @@ definitions:
         type: string
       createdAt:
         type: integer
+      createdBy:
+        type: integer
       explanation:
         type: string
+      isDeleted:
+        type: boolean
       subTopic:
         type: string
       text:
@@ -139,14 +139,10 @@ definitions:
         type: string
       updatedAt:
         type: integer
-      userId:
-        type: string
     type: object
   dto.QuestionAnswer:
     properties:
       answer:
-        type: string
-      correctAnswer:
         type: string
       questionId:
         type: string
@@ -160,8 +156,6 @@ definitions:
     type: object
   dto.QuestionRequest:
     properties:
-      _id:
-        type: string
       choices:
         items:
           $ref: '#/definitions/dto.Choice'
@@ -175,8 +169,6 @@ definitions:
       text:
         type: string
       topic:
-        type: string
-      userId:
         type: string
     type: object
   dto.QuestionResponse:
@@ -207,6 +199,11 @@ paths:
         name: X-USER-ID
         required: true
         type: string
+      - description: ID of the question to update
+        in: path
+        name: id
+        required: true
+        type: string
       - description: Answer request body
         in: body
         name: body
@@ -231,42 +228,6 @@ paths:
       summary: Create or update answer
       tags:
       - Answers
-  /examservice/exams:
-    post:
-      consumes:
-      - application/json
-      description: Create a new exam or update an existing one based on the provided
-        request body.
-      parameters:
-      - description: Exam request body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.ExamRequest'
-      - description: User ID
-        in: header
-        name: X-USER-ID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successful response
-          schema:
-            $ref: '#/definitions/dto.ExamResponse'
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/utils.CustomError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/utils.CustomError'
-      summary: Create or update an exam
-      tags:
-      - Exams
   /examservice/exams/:
     get:
       consumes:
@@ -391,6 +352,45 @@ paths:
       summary: Get an exam by ID
       tags:
       - Exams
+    put:
+      consumes:
+      - application/json
+      description: Create a new exam or update an existing one based on the provided
+        request body.
+      parameters:
+      - description: Exam request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ExamRequest'
+      - description: User ID
+        in: header
+        name: X-USER-ID
+        required: true
+        type: string
+      - description: ID of the question to update
+        in: path
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            $ref: '#/definitions/dto.ExamResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+      summary: Create or update an exam
+      tags:
+      - Exams
   /examservice/ping/:
     get:
       description: Pings the server and returns "Okay" if successful.
@@ -409,41 +409,6 @@ paths:
       summary: Pings the server.
       tags:
       - Ping
-  /examservice/questions:
-    post:
-      consumes:
-      - application/json
-      description: Create or update questions based on the request
-      parameters:
-      - description: User ID
-        in: header
-        name: X-USER-ID
-        required: true
-        type: string
-      - description: Question request body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.QuestionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully created or updated questions
-          schema:
-            $ref: '#/definitions/dto.QuestionResponse'
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/utils.CustomError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/utils.CustomError'
-      summary: Create or update questions
-      tags:
-      - Questions
   /examservice/questions/:
     get:
       consumes:
@@ -570,6 +535,44 @@ paths:
           schema:
             $ref: '#/definitions/utils.CustomError'
       summary: Retrieve a question by ID
+      tags:
+      - Questions
+    put:
+      consumes:
+      - application/json
+      description: Create or update questions based on the request
+      parameters:
+      - description: User ID
+        in: header
+        name: X-USER-ID
+        required: true
+        type: string
+      - description: ID of the question to update
+        in: path
+        name: id
+        type: string
+      - description: Question request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.QuestionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created or updated questions
+          schema:
+            type: string
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.CustomError'
+      summary: Create or update questions
       tags:
       - Questions
 swagger: "2.0"

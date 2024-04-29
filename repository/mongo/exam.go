@@ -19,7 +19,7 @@ const (
 	EXAM_COLLECTION = "exams"
 )
 
-func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) (string, error) {
+func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) error {
 	// Specify the MongoDB collection
 	examCollection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
 
@@ -57,9 +57,9 @@ func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) (str
 	_, err := examCollection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
 	if err != nil {
 		logger.Error(ctx, "Error upserting exam: %v", err)
-		return "", utils.NewInternalServerError("Failed to upsert exam into the database")
+		return utils.NewInternalServerError("Failed to upsert exam into the database")
 	}
-	return objectId, nil
+	return nil
 }
 
 func (r *Repository) GetExamsList(ctx context.Context, filter *filters.ExamFilter, limit, offset int) ([]*dao.Exam, error) {
@@ -67,7 +67,9 @@ func (r *Repository) GetExamsList(ctx context.Context, filter *filters.ExamFilte
 	collection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
 
 	// Define the filter based on provided topic and subTopic
-	QueryFilter := bson.M{}
+	QueryFilter := bson.M{
+		"isDeleted": bson.M{"$ne": true}, // Exclude deleted questions
+	}
 	if filter.Topic != "" {
 		QueryFilter["topic"] = filter.Topic
 	}
@@ -113,12 +115,13 @@ func (r *Repository) GetExamById(ctx context.Context, id string) (*dao.Exam, err
 func (r *Repository) DeleteExamById(ctx context.Context, id string) error {
 	collection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
 	filter := bson.M{"_id": id}
-	res, err := collection.DeleteOne(ctx, filter)
+	update := bson.M{"$set": bson.M{"isDeleted": true}}
+	res, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		logger.Error(ctx, "Error deleting exam by ID: %v", err)
-		return utils.NewInternalServerError("Failed to delete exam")
+		logger.Error(ctx, "Error soft deleting exam by ID %v", err)
+		return utils.NewInternalServerError("Failed to soft delete exam")
 	}
-	if res.DeletedCount == 0 {
+	if res.ModifiedCount == 0 {
 		utils.NewCustomError(404, "No exam found for this id")
 	}
 	return nil

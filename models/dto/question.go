@@ -7,18 +7,28 @@ import (
 )
 
 type QuestionRequest struct {
-	ID          string   `json:"_id,omitempty"`
+	ID          string   `json:"-"`
 	Text        string   `json:"text"`
 	Choices     []Choice `json:"choices"`
 	Correct     string   `json:"correct"`
 	Explanation string   `json:"explanation"`
 	Topic       string   `json:"topic"`
 	SubTopic    string   `json:"subTopic"`
-	UserId      string   `json:"userId"`
+	CreatedBy   int64    `json:"-"`
+}
+
+type CreateQuestionResponse struct {
+	Message    string `json:"message"`
+	StatusCode int    `json:"statusCode"`
 }
 
 type QuestionResponse struct {
 	Id         string `json:"_id,omitempty"`
+	StatusCode int    `json:"statusCode"`
+}
+
+type QuestionError struct {
+	Error      string `json:"message"`
 	StatusCode int    `json:"statusCode"`
 }
 
@@ -44,7 +54,7 @@ func (r *QuestionRequest) ToMongoObject() *dao.Question {
 		Explanation: r.Explanation,
 		Topic:       r.Topic,
 		SubTopic:    r.SubTopic,
-		UserId:      r.UserId,
+		CreatedBy:   r.CreatedBy,
 		CreatedAt:   time.Now().UnixMilli(),
 		UpdatedAt:   time.Now().UnixMilli(),
 	}
@@ -70,7 +80,8 @@ type Question struct {
 	Explanation string   `json:"explanation"`
 	Topic       string   `json:"topic"`
 	SubTopic    string   `json:"subTopic"`
-	UserId      string   `json:"userId"`
+	CreatedBy   int64    `json:"createdBy"`
+	IsDeleted   bool     `json:"isDeleted"`
 	CreatedAt   int64    `json:"createdAt,omitempty"`
 	UpdatedAt   int64    `json:"updatedAt,omitempty"`
 }
@@ -98,9 +109,6 @@ func (q *QuestionRequest) Validate() error {
 
 	if q.Explanation == "" {
 		return errors.New("explanation is required")
-	}
-	if q.UserId == "" {
-		return errors.New("userID is required")
 	}
 	return nil
 }

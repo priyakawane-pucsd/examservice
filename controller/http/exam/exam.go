@@ -16,7 +16,7 @@ type ExamController struct {
 }
 
 type Service interface {
-	CreateOrUpdateExam(ctx context.Context, req *dto.ExamRequest) (*dto.ExamResponse, error)
+	CreateOrUpdateExam(ctx context.Context, req *dto.ExamRequest, questionId string) (string, error)
 	GetExamsList(ctx context.Context, filter *filters.ExamFilter, limit, offset int) (*dto.ListExamsResponse, error)
 	GetExamById(ctx context.Context, examId string) (*dto.ExamByIdResponse, error)
 	DeleteExamById(ctx context.Context, examId string) (*dto.DeleteExamResponse, error)
@@ -28,7 +28,7 @@ func NewExamController(ctx context.Context, service Service) *ExamController {
 
 func (ec *ExamController) Register(router gin.IRouter) {
 	examRouter := router.Group("/examservice/exams")
-	examRouter.POST("/", ec.CreateOrUpdateExam)
+	examRouter.PUT("/:id", ec.CreateOrUpdateExam)
 	examRouter.GET("/", ec.GetExamsList)
 	examRouter.GET("/:id", ec.GetExamById)
 	examRouter.DELETE("/:id", ec.DeleteExamById)
@@ -44,10 +44,11 @@ func (ec *ExamController) Register(router gin.IRouter) {
 // @Produce json
 // @Param request body dto.ExamRequest true "Exam request body"
 // @Param X-USER-ID header string true "User ID"
+// @Param id path string false "ID of the question to update"
 // @Success 200 {object} dto.ExamResponse "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request body"
 // @Failure 500 {object} utils.CustomError "Internal server error"
-// @Router /examservice/exams [post]
+// @Router /examservice/exams/{id} [put]
 func (ec *ExamController) CreateOrUpdateExam(ctx *gin.Context) {
 	var req dto.ExamRequest
 	err := ctx.BindJSON(&req)
@@ -62,9 +63,16 @@ func (ec *ExamController) CreateOrUpdateExam(ctx *gin.Context) {
 		utils.WriteError(ctx, utils.NewBadRequestError(err.Error()))
 		return
 	}
-	ctx.GetHeader("X-USER-ID")
 
-	res, err := ec.service.CreateOrUpdateExam(ctx, &req)
+	questionId := ctx.Param("id")
+	// Access X-USER-ID header
+	req.CreatedBy, err = utils.GetUserIdFromContext(ctx)
+	if err != nil {
+		utils.WriteError(ctx, utils.NewBadRequestError("Invalid userId"))
+		return
+	}
+
+	res, err := ec.service.CreateOrUpdateExam(ctx, &req, questionId)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return

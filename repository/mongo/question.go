@@ -19,7 +19,7 @@ const (
 	QUESTIONS_COLLECTION = "questions"
 )
 
-func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Question) (string, error) {
+func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Question) error {
 	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
 
 	// Convert created_at and updated_at to milliseconds
@@ -41,9 +41,9 @@ func (r *Repository) CreateOrUpdateQuestions(ctx context.Context, req *dao.Quest
 	_, err := collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		logger.Error(ctx, "Error upserting question: %v", err)
-		return "", utils.NewInternalServerError("Failed to upsert question into the database")
+		return utils.NewInternalServerError("Failed to upsert question into the database")
 	}
-	return objectID, nil
+	return nil
 }
 
 func (r *Repository) GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) ([]*dao.Question, error) {
@@ -51,7 +51,10 @@ func (r *Repository) GetQuestionsList(ctx context.Context, filter *filters.Quest
 	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
 
 	// Define the filter based on provided topic and subTopic
-	QueryFilter := bson.M{}
+	QueryFilter := bson.M{
+		"isDeleted": bson.M{"$ne": true}, // Exclude deleted questions
+	}
+
 	if filter.Topic != "" {
 		QueryFilter["topic"] = filter.Topic
 	}
@@ -88,18 +91,18 @@ func (r *Repository) DeleteQuestionById(ctx context.Context, id string) error {
 
 	// Specify the filter based on the ID
 	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{"isDeleted": true}}
 	// Perform the deletion operation
-	result, err := collection.DeleteOne(ctx, filter)
+	result, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		logger.Error(ctx, "Error deleting question by ID: %v", err)
-		return utils.NewInternalServerError("Failed to delete question")
+		logger.Error(ctx, "Error soft deleting exam by ID: %v", err)
+		return utils.NewInternalServerError("Failed to soft delete question")
 	}
 
 	// Check if no documents were matched and deleted
-	if result.DeletedCount == 0 {
+	if result.ModifiedCount == 0 {
 		return utils.NewCustomError(404, "Question not found with this Id")
 	}
-
 	return nil
 }
 

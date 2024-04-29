@@ -26,6 +26,13 @@
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "ID of the question to update",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Answer request body",
                         "name": "body",
                         "in": "body",
@@ -40,59 +47,6 @@
                         "description": "Successful operation",
                         "schema": {
                             "$ref": "#/definitions/dto.AnswerResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body",
-                        "schema": {
-                            "$ref": "#/definitions/utils.CustomError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.CustomError"
-                        }
-                    }
-                }
-            }
-        },
-        "/examservice/exams": {
-            "post": {
-                "description": "Create a new exam or update an existing one based on the provided request body.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Exams"
-                ],
-                "summary": "Create or update an exam",
-                "parameters": [
-                    {
-                        "description": "Exam request body",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.ExamRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "X-USER-ID",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ExamResponse"
                         }
                     },
                     "400": {
@@ -239,6 +193,63 @@
                     }
                 }
             },
+            "put": {
+                "description": "Create a new exam or update an existing one based on the provided request body.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Exams"
+                ],
+                "summary": "Create or update an exam",
+                "parameters": [
+                    {
+                        "description": "Exam request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ExamRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of the question to update",
+                        "name": "id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ExamResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "Deletes an exam by its ID.",
                 "consumes": [
@@ -318,59 +329,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dto.PingResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/examservice/questions": {
-            "post": {
-                "description": "Create or update questions based on the request",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Questions"
-                ],
-                "summary": "Create or update questions",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "X-USER-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "Question request body",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.QuestionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successfully created or updated questions",
-                        "schema": {
-                            "$ref": "#/definitions/dto.QuestionResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body",
-                        "schema": {
-                            "$ref": "#/definitions/utils.CustomError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.CustomError"
                         }
                     }
                 }
@@ -511,6 +469,63 @@
                     }
                 }
             },
+            "put": {
+                "description": "Create or update questions based on the request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Questions"
+                ],
+                "summary": "Create or update questions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "X-USER-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of the question to update",
+                        "name": "id",
+                        "in": "path"
+                    },
+                    {
+                        "description": "Question request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.QuestionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully created or updated questions",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.CustomError"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "Deletes a question by its ID.",
                 "consumes": [
@@ -572,9 +587,6 @@
         "dto.AnswerRequest": {
             "type": "object",
             "properties": {
-                "_id": {
-                    "type": "string"
-                },
                 "answers": {
                     "type": "array",
                     "items": {
@@ -582,9 +594,6 @@
                     }
                 },
                 "examId": {
-                    "type": "string"
-                },
-                "userId": {
                     "type": "string"
                 }
             }
@@ -620,6 +629,9 @@
                 "createdAt": {
                     "type": "integer"
                 },
+                "createdBy": {
+                    "type": "integer"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -634,6 +646,9 @@
                 },
                 "examFee": {
                     "type": "number"
+                },
+                "isDeleted": {
+                    "type": "boolean"
                 },
                 "questions": {
                     "type": "array",
@@ -661,12 +676,6 @@
         "dto.ExamRequest": {
             "type": "object",
             "properties": {
-                "_id": {
-                    "type": "string"
-                },
-                "createdBy": {
-                    "type": "integer"
-                },
                 "description": {
                     "type": "string"
                 },
@@ -768,8 +777,14 @@
                 "createdAt": {
                     "type": "integer"
                 },
+                "createdBy": {
+                    "type": "integer"
+                },
                 "explanation": {
                     "type": "string"
+                },
+                "isDeleted": {
+                    "type": "boolean"
                 },
                 "subTopic": {
                     "type": "string"
@@ -782,9 +797,6 @@
                 },
                 "updatedAt": {
                     "type": "integer"
-                },
-                "userId": {
-                    "type": "string"
                 }
             }
         },
@@ -792,9 +804,6 @@
             "type": "object",
             "properties": {
                 "answer": {
-                    "type": "string"
-                },
-                "correctAnswer": {
                     "type": "string"
                 },
                 "questionId": {
@@ -816,9 +825,6 @@
         "dto.QuestionRequest": {
             "type": "object",
             "properties": {
-                "_id": {
-                    "type": "string"
-                },
                 "choices": {
                     "type": "array",
                     "items": {
@@ -838,9 +844,6 @@
                     "type": "string"
                 },
                 "topic": {
-                    "type": "string"
-                },
-                "userId": {
                     "type": "string"
                 }
             }

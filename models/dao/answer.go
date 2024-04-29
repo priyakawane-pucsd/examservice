@@ -2,7 +2,7 @@ package dao
 
 type Answer struct {
 	ID        string           `bson:"_id,omitempty"`
-	UserID    string           `bson:"userId"`
+	UserID    int64            `bson:"userId"`
 	ExamID    string           `bson:"examId"`
 	Answers   []QuestionAnswer `bson:"answers"`
 	Result    Result           `bson:"result"`
@@ -16,7 +16,6 @@ type Result struct {
 }
 
 type QuestionAnswer struct {
-	QuestionId    string `bson:"questionId"`
-	Answer        string `bson:"answer"`
-	CorrectAnswer string `bson:"correctAnswer"`
+	QuestionId string `bson:"questionId"`
+	Answer     string `bson:"answer"`
 }

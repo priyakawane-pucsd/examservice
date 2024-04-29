@@ -11,7 +11,9 @@ type Exam struct {
 	Topic           string   `bson:"topic"`
 	SubTopic        string   `bson:"subTopic"`
 	ExamFee         float64  `bson:"examFee"`
+	IsDeleted       bool     `bson:"isDeleted"`
 	DifficultyLevel string   `bson:"difficultyLevel"`
+	CreatedBy       int64    `bson:"createdBy"`
 	CreatedAt       int64    `bson:"createdAt,omitempty"`
 	UpdatedAt       int64    `bson:"updatedAt,omitempty"`
 }

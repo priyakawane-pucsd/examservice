@@ -8,7 +8,7 @@ import (
 )
 
 type ExamRequest struct {
-	ID              string   `json:"_id,omitempty"`
+	ID              string   `json:"-"`
 	Title           string   `json:"title"`
 	Description     string   `json:"description"`
 	StartTime       int64    `json:"startTime"`
@@ -19,7 +19,7 @@ type ExamRequest struct {
 	SubTopic        string   `json:"subTopic"`
 	ExamFee         float64  `json:"examFee"`
 	DifficultyLevel string   `json:"difficultyLevel"`
-	CreatedBy       int64    `json:"createdBy"`
+	CreatedBy       int64    `json:"-"`
 }
 
 var validDifficultLevels = map[string]bool{
@@ -94,6 +94,8 @@ type Exam struct {
 	SubTopic        string   `json:"subTopic"`
 	ExamFee         float64  `json:"examFee"`
 	DifficultyLevel string   `json:"difficultyLevel"`
+	IsDeleted       bool     `json:"isDeleted"`
+	CreatedBy       int64    `json:"createdBy"`
 	CreatedAt       int64    `json:"createdAt,omitempty"`
 	UpdatedAt       int64    `json:"updatedAt,omitempty"`
 }
@@ -110,6 +112,7 @@ func (r *ExamRequest) ToMongoObject() *dao.Exam {
 		Topic:           r.Topic,
 		SubTopic:        r.SubTopic,
 		ExamFee:         r.ExamFee,
+		CreatedBy:       r.CreatedBy,
 		DifficultyLevel: r.DifficultyLevel,
 		CreatedAt:       time.Now().UnixMilli(),
 		UpdatedAt:       time.Now().UnixMilli(),

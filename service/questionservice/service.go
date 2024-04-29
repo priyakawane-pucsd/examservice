@@ -16,7 +16,7 @@ type Service struct {
 type Config struct{}
 
 type Repository interface {
-	CreateOrUpdateQuestions(ctx context.Context, cfg *dao.Question) (string, error)
+	CreateOrUpdateQuestions(ctx context.Context, cfg *dao.Question) error
 	GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) ([]*dao.Question, error)
 	GetQuestionById(ctx context.Context, questionId string) (*dao.Question, error)
 	DeleteQuestionById(ctx context.Context, id string) error
@@ -26,13 +26,21 @@ func NewService(ctx context.Context, conf *Config, repo Repository) *Service {
 	return &Service{conf: conf, repo: repo}
 }
 
-func (s *Service) CreateOrUpdateQuestions(ctx context.Context, req *dto.QuestionRequest) (*dto.QuestionResponse, error) {
-	cfg := req.ToMongoObject()
-	objectId, err := s.repo.CreateOrUpdateQuestions(ctx, cfg)
-	if err != nil {
-		return nil, err
+func (s *Service) CreateOrUpdateQuestions(ctx context.Context, req *dto.QuestionRequest, questionId string) (string, error) {
+	if questionId != "{id}" && questionId != "undefined" {
+		_, err := s.repo.GetQuestionById(ctx, questionId)
+		if err != nil {
+			return "", err
+		}
+		req.ID = questionId
 	}
-	return &dto.QuestionResponse{StatusCode: http.StatusCreated, Id: objectId}, nil
+
+	question := req.ToMongoObject()
+	err := s.repo.CreateOrUpdateQuestions(ctx, question)
+	if err != nil {
+		return "", err
+	}
+	return "CreateOrUpdate Successfully", nil
 }
 
 func (s *Service) GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) (*dto.ListQuestionResponse, error) {

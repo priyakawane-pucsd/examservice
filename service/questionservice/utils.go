@@ -28,7 +28,7 @@ func QuestionsResponse(question *dao.Question) *dto.Question {
 		Choices:     choices,
 		Correct:     question.Correct,
 		Explanation: question.Explanation,
-		UserId:      question.UserId,
+		CreatedBy:   question.CreatedBy,
 		Topic:       question.Topic,
 		SubTopic:    question.SubTopic,
 		CreatedAt:   question.CreatedAt,

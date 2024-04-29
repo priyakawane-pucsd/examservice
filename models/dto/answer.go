@@ -7,8 +7,8 @@ import (
 )
 
 type AnswerRequest struct {
-	ID      string           `json:"_id,omitempty"`
-	UserID  string           `json:"userId"`
+	ID      string           `json:"-"`
+	UserID  int64            `json:"-"`
 	ExamID  string           `json:"examId"`
 	Answers []QuestionAnswer `json:"answers"`
 }
@@ -19,14 +19,13 @@ type Result struct {
 }
 
 type QuestionAnswer struct {
-	QuestionId    string `json:"questionId"`
-	Answer        string `json:"answer"`
-	CorrectAnswer string `json:"correctAnswer"`
+	QuestionId string `json:"questionId"`
+	Answer     string `json:"answer"`
 }
 
 type Answer struct {
 	ID        string           `json:"_id,omitempty"`
-	UserID    string           `json:"userId"`
+	UserID    int64            `json:"userId"`
 	ExamID    string           `json:"examId"`
 	Answers   []QuestionAnswer `json:"answers"`
 	Result    Result           `json:"result"`
@@ -44,9 +43,8 @@ func (ar *AnswerRequest) ToMongoObject() *dao.Answer {
 
 	for _, ans := range ar.Answers {
 		answers = append(answers, dao.QuestionAnswer{
-			QuestionId:    ans.QuestionId,
-			Answer:        ans.Answer,
-			CorrectAnswer: ans.CorrectAnswer,
+			QuestionId: ans.QuestionId,
+			Answer:     ans.Answer,
 		})
 	}
 
@@ -64,9 +62,7 @@ func (a *AnswerRequest) Validate() error {
 	if a.ExamID == "" {
 		return errors.New("examId is required")
 	}
-	if a.UserID == "" {
-		return errors.New("userId is required")
-	}
+
 	if len(a.Answers) == 0 {
 		return errors.New("answers must not be empty")
 	}

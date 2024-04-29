@@ -3,8 +3,6 @@ package utils
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 type CustomError struct {
@@ -32,16 +30,4 @@ func NewInternalServerError(message string) error {
 		StatusCode: http.StatusInternalServerError,
 		Message:    message,
 	}
-}
-
-func WriteError(ctx *gin.Context, err error) {
-	if cErr, ok := err.(*CustomError); ok {
-		ctx.JSON(cErr.StatusCode, cErr)
-		return
-	}
-	ctx.JSON(http.StatusInternalServerError, &CustomError{StatusCode: http.StatusInternalServerError, Message: err.Error()})
-}
-
-func WriteResponse(ctx *gin.Context, res any) {
-	ctx.JSON(http.StatusOK, res)
 }

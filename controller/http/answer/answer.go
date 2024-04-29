@@ -32,6 +32,7 @@ func (ac *AnswerController) Register(router gin.IRouter) {
 // @Accept json
 // @Produce json
 // @Param X-USER-ID header string true "User ID"
+// @Param id path string true "ID of the question to update"
 // @Param body body dto.AnswerRequest true "Answer request body"
 // @Success 200 {object} dto.AnswerResponse "Successful operation"
 // @Failure 400 {object} utils.CustomError "Invalid request body"
@@ -50,6 +51,14 @@ func (ac *AnswerController) CreateOrUpdateAnswer(ctx *gin.Context) {
 	if err := req.Validate(); err != nil {
 		logger.Error(ctx, "Validation error: %s", err.Error())
 		utils.WriteError(ctx, utils.NewBadRequestError(err.Error()))
+		return
+	}
+
+	req.ID = ctx.Param("id")
+	// Access X-USER-ID header
+	req.UserID, err = utils.GetUserIdFromContext(ctx)
+	if err != nil {
+		utils.WriteError(ctx, utils.NewBadRequestError("Invalid userId"))
 		return
 	}
 

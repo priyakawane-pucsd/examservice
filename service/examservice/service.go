@@ -17,7 +17,7 @@ type Service struct {
 type Config struct{}
 
 type Repository interface {
-	CreateOrUpdateExam(ctx context.Context, cfg *dao.Exam) (string, error)
+	CreateOrUpdateExam(ctx context.Context, cfg *dao.Exam) error
 	GetExamsList(ctx context.Context, filter *filters.ExamFilter, limit, offset int) ([]*dao.Exam, error)
 	GetExamById(ctx context.Context, examId string) (*dao.Exam, error)
 	DeleteExamById(ctx context.Context, id string) error
@@ -28,21 +28,29 @@ func NewService(ctx context.Context, conf *Config, repo Repository) *Service {
 	return &Service{conf: conf, repo: repo}
 }
 
-func (s *Service) CreateOrUpdateExam(ctx context.Context, req *dto.ExamRequest) (*dto.ExamResponse, error) {
-	dbQuestionCount, err := s.repo.GetQuestionsCountByIds(ctx, req.Questions)
-	if err != nil {
-		return nil, err
-	}
-	if len(req.Questions) != int(dbQuestionCount) {
-		return nil, utils.NewBadRequestError("Invalid Question Ids")
+func (s *Service) CreateOrUpdateExam(ctx context.Context, req *dto.ExamRequest, examId string) (string, error) {
+	if examId != "{id}" && examId != "undefined" {
+		_, err := s.repo.GetExamById(ctx, examId)
+		if err != nil {
+			return "", err
+		}
+		req.ID = examId
 	}
 
-	cfg := req.ToMongoObject()
-	objectId, err := s.repo.CreateOrUpdateExam(ctx, cfg)
+	dbQuestionCount, err := s.repo.GetQuestionsCountByIds(ctx, req.Questions)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &dto.ExamResponse{StatusCode: http.StatusCreated, Id: objectId}, nil
+	if len(req.Questions) != int(dbQuestionCount) {
+		return "", utils.NewBadRequestError("Invalid Question Ids")
+	}
+
+	exam := req.ToMongoObject()
+	err = s.repo.CreateOrUpdateExam(ctx, exam)
+	if err != nil {
+		return "", err
+	}
+	return "CreateOrUpdate Successfully", nil
 }
 
 func (s *Service) GetExamsList(ctx context.Context, filter *filters.ExamFilter, limit, offset int) (*dto.ListExamsResponse, error) {

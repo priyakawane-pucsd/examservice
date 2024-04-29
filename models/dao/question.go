@@ -23,7 +23,8 @@ type Question struct {
 	Explanation string   `bson:"explanation"`
 	Topic       string   `bson:"topic"`
 	SubTopic    string   `bson:"subTopic"`
-	UserId      string   `bson:"userId"`
+	CreatedBy   int64    `bson:"createdBy"`
+	IsDeleted   bool     `bson:"isDeleted"`
 	CreatedAt   int64    `bson:"createdAt"`
 	UpdatedAt   int64    `bson:"updatedAt"`
 }

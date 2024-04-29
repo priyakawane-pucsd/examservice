@@ -16,9 +16,7 @@ type QuestionController struct {
 }
 
 type Service interface {
-	CreateOrUpdateQuestions(ctx context.Context, req *dto.QuestionRequest) (*dto.QuestionResponse, error)
-
-	//todo use filters to fetch questions
+	CreateOrUpdateQuestions(ctx context.Context, req *dto.QuestionRequest, questionId string) (string, error)
 	GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) (*dto.ListQuestionResponse, error)
 	DeleteQuestionById(ctx context.Context, questionId string) (*dto.DeleteQuestionResponse, error)
 	GetQuestionById(ctx context.Context, questionId string) (*dto.QuestionByIdResponse, error)
@@ -30,7 +28,7 @@ func NewQuestionController(ctx context.Context, service Service) *QuestionContro
 
 func (qc *QuestionController) Register(router gin.IRouter) {
 	QuestionRouter := router.Group("/examservice/questions")
-	QuestionRouter.POST("/", qc.CreateOrUpdateQuestions)
+	QuestionRouter.PUT("/:id", qc.CreateOrUpdateQuestions)
 	QuestionRouter.GET("/", qc.GetQuestionsList)
 	QuestionRouter.GET("/:id", qc.GetQuestionById)
 	QuestionRouter.DELETE("/:id", qc.DeleteQuestionById)
@@ -42,11 +40,12 @@ func (qc *QuestionController) Register(router gin.IRouter) {
 // @Accept json
 // @Produce json
 // @Param X-USER-ID header string true "User ID"
+// @Param id path string false "ID of the question to update"
 // @Param request body dto.QuestionRequest true "Question request body"
-// @Success 200 {object} dto.QuestionResponse "Successfully created or updated questions"
+// @Success 200 {object} string "Successfully created or updated questions"
 // @Failure 400 {object} utils.CustomError "Invalid request body"
 // @Failure 500 {object} utils.CustomError "Internal server error"
-// @Router /examservice/questions [post]
+// @Router /examservice/questions/{id} [put]
 func (qc *QuestionController) CreateOrUpdateQuestions(ctx *gin.Context) {
 	var req dto.QuestionRequest
 	err := ctx.BindJSON(&req)
@@ -55,6 +54,7 @@ func (qc *QuestionController) CreateOrUpdateQuestions(ctx *gin.Context) {
 		utils.WriteError(ctx, utils.NewBadRequestError("Invalid request body"))
 		return
 	}
+
 	// Validate the request
 	if err := req.Validate(); err != nil {
 		logger.Error(ctx, "Validation error: %s", err.Error())
@@ -62,7 +62,15 @@ func (qc *QuestionController) CreateOrUpdateQuestions(ctx *gin.Context) {
 		return
 	}
 
-	res, err := qc.service.CreateOrUpdateQuestions(ctx, &req)
+	questionId := ctx.Param("id")
+	// Access X-USER-ID header
+	req.CreatedBy, err = utils.GetUserIdFromContext(ctx)
+	if err != nil {
+		utils.WriteError(ctx, utils.NewBadRequestError("Invalid userId"))
+		return
+	}
+
+	res, err := qc.service.CreateOrUpdateQuestions(ctx, &req, questionId)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return
