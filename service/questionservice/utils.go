@@ -6,7 +6,7 @@ import (
 )
 
 func ConvertToQuestionResponseList(questions []*dao.Question) []dto.Question {
-	var convertedQuestions []dto.Question
+	var convertedQuestions []dto.Question = []dto.Question{}
 	for _, question := range questions {
 		convertedQue := QuestionsResponse(question)
 		convertedQuestions = append(convertedQuestions, *convertedQue)

@@ -62,8 +62,7 @@ func (r *QuestionRequest) ToMongoObject() *dao.Question {
 
 // ListQuestionResponse represents the response format for the list of questions.
 type ListQuestionResponse struct {
-	Questions  []Question `json:"questions"`
-	StatusCode int        `json:"statusCode"`
+	Questions []Question `json:"questions"`
 }
 
 type Choice struct {

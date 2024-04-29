@@ -62,7 +62,7 @@ func (r *Repository) GetQuestionsList(ctx context.Context, filter *filters.Quest
 		QueryFilter["subTopic"] = filter.SubTopic
 	}
 	if filter.UserId != "" {
-		QueryFilter["userId"] = filter.UserId
+		QueryFilter["createdBy"] = filter.UserId
 	}
 
 	// Define options for the find operation

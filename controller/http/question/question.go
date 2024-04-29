@@ -18,7 +18,7 @@ type QuestionController struct {
 type Service interface {
 	CreateOrUpdateQuestions(ctx context.Context, req *dto.QuestionRequest, questionId string) (string, error)
 	GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) (*dto.ListQuestionResponse, error)
-	DeleteQuestionById(ctx context.Context, questionId string) (*dto.DeleteQuestionResponse, error)
+	DeleteQuestionById(ctx context.Context, questionId string, userId int64) error
 	GetQuestionById(ctx context.Context, questionId string) (*dto.QuestionByIdResponse, error)
 }
 
@@ -167,11 +167,17 @@ func (qc *QuestionController) DeleteQuestionById(ctx *gin.Context) {
 	// Extract the question ID from the request context
 	questionId := ctx.Param("id")
 
+	// Access X-USER-ID header
+	userId, err := utils.GetUserIdFromContext(ctx)
+	if err != nil {
+		utils.WriteError(ctx, utils.NewBadRequestError("Invalid userId"))
+		return
+	}
 	// Call the service function to delete the question by ID
-	res, err := qc.service.DeleteQuestionById(ctx, questionId)
+	err = qc.service.DeleteQuestionById(ctx, questionId, userId)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return
 	}
-	utils.WriteResponse(ctx, res)
+	utils.WriteResponse(ctx, "Question deleted successfully!!")
 }

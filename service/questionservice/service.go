@@ -5,6 +5,8 @@ import (
 	"examservice/models/dao"
 	"examservice/models/dto"
 	"examservice/models/filters"
+	"examservice/utils"
+	"fmt"
 	"net/http"
 )
 
@@ -48,10 +50,11 @@ func (s *Service) GetQuestionsList(ctx context.Context, filter *filters.Question
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("questionquestion", questions)
 	response := &dto.ListQuestionResponse{
-		Questions:  ConvertToQuestionResponseList(questions),
-		StatusCode: http.StatusOK,
+		Questions: ConvertToQuestionResponseList(questions),
 	}
+
 	return response, nil
 }
 
@@ -68,16 +71,18 @@ func (s *Service) GetQuestionById(ctx context.Context, questionId string) (*dto.
 	return response, nil
 }
 
-func (s *Service) DeleteQuestionById(ctx context.Context, id string) (*dto.DeleteQuestionResponse, error) {
-	err := s.repo.DeleteQuestionById(ctx, id)
+func (s *Service) DeleteQuestionById(ctx context.Context, id string, userId int64) error {
+	question, err := s.repo.GetQuestionById(ctx, id)
 	if err != nil {
-		return nil, err
+		return err
+	}
+	if question.CreatedBy != userId {
+		return utils.NewUnauthorizedError("permission denied to delete question")
 	}
 
-	// If the deletion is successful, create a response
-	response := &dto.DeleteQuestionResponse{
-		Message:    "Question deleted successfully",
-		StatusCode: http.StatusOK,
+	err = s.repo.DeleteQuestionById(ctx, id)
+	if err != nil {
+		return err
 	}
-	return response, nil
+	return nil
 }

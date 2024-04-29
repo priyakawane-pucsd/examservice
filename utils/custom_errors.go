@@ -31,3 +31,7 @@ func NewInternalServerError(message string) error {
 		Message:    message,
 	}
 }
+
+func NewUnauthorizedError(message string) error {
+	return NewCustomError(http.StatusUnauthorized, message)
+}
