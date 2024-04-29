@@ -293,7 +293,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successful response",
                         "schema": {
-                            "$ref": "#/definitions/dto.ExamResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -755,9 +755,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.Question"
                     }
-                },
-                "statusCode": {
-                    "type": "integer"
                 }
             }
         },

@@ -282,7 +282,7 @@
                     "200": {
                         "description": "Successful response",
                         "schema": {
-                            "$ref": "#/definitions/dto.ExamResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -744,9 +744,6 @@
                     "items": {
                         "$ref": "#/definitions/dto.Question"
                     }
-                },
-                "statusCode": {
-                    "type": "integer"
                 }
             }
         },

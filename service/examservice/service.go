@@ -59,8 +59,7 @@ func (s *Service) GetExamsList(ctx context.Context, filter *filters.ExamFilter, 
 		return nil, err
 	}
 	response := &dto.ListExamsResponse{
-		Exams:      ConvertToExamResponseList(exams),
-		StatusCode: http.StatusOK,
+		Exams: ConvertToExamResponseList(exams),
 	}
 	return response, nil
 }
@@ -77,15 +76,18 @@ func (s *Service) GetExamById(ctx context.Context, examId string) (*dto.ExamById
 	return response, nil
 }
 
-func (s *Service) DeleteExamById(ctx context.Context, examId string) (*dto.DeleteExamResponse, error) {
-	err := s.repo.DeleteExamById(ctx, examId)
+func (s *Service) DeleteExamById(ctx context.Context, examId string, userId int64) error {
+	exam, err := s.repo.GetExamById(ctx, examId)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	// If the deletion is successful, create a response
-	response := &dto.DeleteExamResponse{
-		Message:    "Exam deleted successfully",
-		StatusCode: http.StatusOK,
+	if exam.CreatedBy != userId {
+		return utils.NewUnauthorizedError("permission denied to delete question")
 	}
-	return response, nil
+
+	err = s.repo.DeleteExamById(ctx, examId)
+	if err != nil {
+		return err
+	}
+	return nil
 }

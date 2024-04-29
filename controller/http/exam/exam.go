@@ -5,6 +5,7 @@ import (
 	"examservice/models/dto"
 	"examservice/models/filters"
 	"examservice/utils"
+	"fmt"
 	"strconv"
 
 	"github.com/bappaapp/goutils/logger"
@@ -19,7 +20,7 @@ type Service interface {
 	CreateOrUpdateExam(ctx context.Context, req *dto.ExamRequest, questionId string) (string, error)
 	GetExamsList(ctx context.Context, filter *filters.ExamFilter, limit, offset int) (*dto.ListExamsResponse, error)
 	GetExamById(ctx context.Context, examId string) (*dto.ExamByIdResponse, error)
-	DeleteExamById(ctx context.Context, examId string) (*dto.DeleteExamResponse, error)
+	DeleteExamById(ctx context.Context, examId string, userId int64) error
 }
 
 func NewExamController(ctx context.Context, service Service) *ExamController {
@@ -67,6 +68,7 @@ func (ec *ExamController) CreateOrUpdateExam(ctx *gin.Context) {
 	questionId := ctx.Param("id")
 	// Access X-USER-ID header
 	req.CreatedBy, err = utils.GetUserIdFromContext(ctx)
+	fmt.Println("req.CreatedByreq.CreatedBy", req.CreatedBy)
 	if err != nil {
 		utils.WriteError(ctx, utils.NewBadRequestError("Invalid userId"))
 		return
@@ -158,19 +160,25 @@ func (ec *ExamController) GetExamById(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param X-USER-ID header string true "User ID"
-// @Success 200 {object} dto.ExamResponse "Successful response"
+// @Success 200 {object} string "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request"
 // @Failure 404 {object} utils.CustomError "Exam not found"
 // @Failure 500 {object} utils.CustomError "Internal server error"
 // @Router /examservice/exams/{id} [delete]
 func (ec *ExamController) DeleteExamById(ctx *gin.Context) {
 	examId := ctx.Param("id")
+	// Access X-USER-ID header
+	userId, err := utils.GetUserIdFromContext(ctx)
+	if err != nil {
+		utils.WriteError(ctx, utils.NewBadRequestError("Invalid userId"))
+		return
+	}
 
 	// Call the service function to delete the exam by ID
-	res, err := ec.service.DeleteExamById(ctx, examId)
+	err = ec.service.DeleteExamById(ctx, examId, userId)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return
 	}
-	utils.WriteResponse(ctx, res)
+	utils.WriteResponse(ctx, "Exam deleted successfully")
 }

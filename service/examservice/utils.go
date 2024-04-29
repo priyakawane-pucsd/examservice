@@ -6,7 +6,7 @@ import (
 )
 
 func ConvertToExamResponseList(exams []*dao.Exam) []dto.Exam {
-	var convertedExams []dto.Exam
+	var convertedExams []dto.Exam = []dto.Exam{}
 	for _, exam := range exams {
 		convertedExam := ExamsResponse(exam)
 		convertedExams = append(convertedExams, *convertedExam)

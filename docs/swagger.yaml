@@ -104,8 +104,6 @@ definitions:
         items:
           $ref: '#/definitions/dto.Question'
         type: array
-      statusCode:
-        type: integer
     type: object
   dto.PingResponse:
     properties:
@@ -299,7 +297,7 @@ paths:
         "200":
           description: Successful response
           schema:
-            $ref: '#/definitions/dto.ExamResponse'
+            type: string
         "400":
           description: Invalid request
           schema:

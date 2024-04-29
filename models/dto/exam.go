@@ -120,8 +120,7 @@ func (r *ExamRequest) ToMongoObject() *dao.Exam {
 }
 
 type ListExamsResponse struct {
-	Exams      []Exam `json:"exam"`
-	StatusCode int    `json:"statusCode"`
+	Exams []Exam `json:"exam"`
 }
 
 type DeleteExamResponse struct {

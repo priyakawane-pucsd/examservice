@@ -27,20 +27,8 @@ func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) erro
 	createdAtMillis := time.Now().UnixNano() / int64(time.Millisecond)
 	updatedAtMillis := createdAtMillis // Assume created_at and updated_at are the same initially
 
-	exam := bson.M{
-		"title":           req.Title,
-		"description":     req.Description,
-		"startTime":       req.StartTime,
-		"endTime":         req.EndTime,
-		"duration":        req.Duration,
-		"topic":           req.Topic,
-		"subTopic":        req.SubTopic,
-		"questions":       req.Questions,
-		"examFee":         req.ExamFee,
-		"difficultyLevel": req.DifficultyLevel,
-		"createdAt":       createdAtMillis,
-		"updatedAt":       updatedAtMillis,
-	}
+	req.CreatedAt = createdAtMillis
+	req.UpdatedAt = updatedAtMillis
 
 	// Set the ID of the exam
 	objectId := ""
@@ -52,7 +40,7 @@ func (r *Repository) CreateOrUpdateExam(ctx context.Context, req *dao.Exam) erro
 
 	//Upsert the exam document into the collection
 	filter := bson.M{"_id": objectId}
-	update := bson.M{"$set": exam}
+	update := bson.M{"$set": req}
 
 	_, err := examCollection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
 	if err != nil {
