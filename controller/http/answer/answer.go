@@ -14,7 +14,7 @@ type AnswerController struct {
 }
 
 type Service interface {
-	CreateOrUpdateAnswer(ctx context.Context, req *dto.AnswerRequest) (*dto.AnswerResponse, error)
+	CreateOrUpdateAnswer(ctx context.Context, req *dto.AnswerRequest, answerId string) (string, error)
 }
 
 func NewAnswerController(ctx context.Context, service Service) *AnswerController {
@@ -23,7 +23,7 @@ func NewAnswerController(ctx context.Context, service Service) *AnswerController
 
 func (ac *AnswerController) Register(router gin.IRouter) {
 	AnswerRouter := router.Group("/examservice/answers")
-	AnswerRouter.POST("/submit", ac.CreateOrUpdateAnswer)
+	AnswerRouter.PUT("/submit/:id", ac.CreateOrUpdateAnswer)
 }
 
 // @Summary Create or update answer
@@ -32,12 +32,12 @@ func (ac *AnswerController) Register(router gin.IRouter) {
 // @Accept json
 // @Produce json
 // @Param X-USER-ID header string true "User ID"
-// @Param id path string true "ID of the question to update"
+// @Param id path string false "ID of the answer to update"
 // @Param body body dto.AnswerRequest true "Answer request body"
 // @Success 200 {object} dto.AnswerResponse "Successful operation"
 // @Failure 400 {object} utils.CustomError "Invalid request body"
 // @Failure 500 {object} utils.CustomError "Internal server error"
-// @Router /examservice/answers/submit [post]
+// @Router /examservice/answers/submit/{id} [put]
 func (ac *AnswerController) CreateOrUpdateAnswer(ctx *gin.Context) {
 	var req dto.AnswerRequest
 	err := ctx.BindJSON(&req)
@@ -54,7 +54,7 @@ func (ac *AnswerController) CreateOrUpdateAnswer(ctx *gin.Context) {
 		return
 	}
 
-	req.ID = ctx.Param("id")
+	answerId := ctx.Param("id")
 	// Access X-USER-ID header
 	req.UserID, err = utils.GetUserIdFromContext(ctx)
 	if err != nil {
@@ -62,7 +62,7 @@ func (ac *AnswerController) CreateOrUpdateAnswer(ctx *gin.Context) {
 		return
 	}
 
-	res, err := ac.service.CreateOrUpdateAnswer(ctx, &req)
+	res, err := ac.service.CreateOrUpdateAnswer(ctx, &req, answerId)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return

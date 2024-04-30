@@ -22,6 +22,7 @@ type Repository interface {
 	GetExamById(ctx context.Context, examId string) (*dao.Exam, error)
 	DeleteExamById(ctx context.Context, id string) error
 	GetQuestionsCountByIds(ctx context.Context, questionIds []string) (int64, error)
+	GetExamByUserId(ctx context.Context, id string, userId int64) error
 }
 
 func NewService(ctx context.Context, conf *Config, repo Repository) *Service {
@@ -64,10 +65,13 @@ func (s *Service) GetExamsList(ctx context.Context, filter *filters.ExamFilter, 
 	return response, nil
 }
 
-func (s *Service) GetExamById(ctx context.Context, examId string) (*dto.ExamByIdResponse, error) {
+func (s *Service) GetExamById(ctx context.Context, examId string, userId int64) (*dto.ExamByIdResponse, error) {
 	exam, err := s.repo.GetExamById(ctx, examId)
 	if err != nil {
 		return nil, err
+	}
+	if exam.CreatedBy != userId {
+		return nil, utils.NewUnauthorizedError("Permission denied to access this question")
 	}
 	response := &dto.ExamByIdResponse{
 		Exam:       *ExamsResponse(exam),
@@ -77,12 +81,9 @@ func (s *Service) GetExamById(ctx context.Context, examId string) (*dto.ExamById
 }
 
 func (s *Service) DeleteExamById(ctx context.Context, examId string, userId int64) error {
-	exam, err := s.repo.GetExamById(ctx, examId)
+	err := s.repo.GetExamByUserId(ctx, examId, userId)
 	if err != nil {
 		return err
-	}
-	if exam.CreatedBy != userId {
-		return utils.NewUnauthorizedError("permission denied to delete question")
 	}
 
 	err = s.repo.DeleteExamById(ctx, examId)

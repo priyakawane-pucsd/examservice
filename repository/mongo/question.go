@@ -61,9 +61,7 @@ func (r *Repository) GetQuestionsList(ctx context.Context, filter *filters.Quest
 	if filter.SubTopic != "" {
 		QueryFilter["subTopic"] = filter.SubTopic
 	}
-	if filter.UserId != "" {
-		QueryFilter["createdBy"] = filter.UserId
-	}
+	QueryFilter["createdBy"] = filter.UserId
 
 	// Define options for the find operation
 	findOptions := options.Find().SetSort(bson.M{"createdAt": -1}).SetLimit(int64(limit)).SetSkip(int64(offset))
@@ -160,4 +158,22 @@ func (r *Repository) GetQuestionsByFilters(ctx context.Context, questionIds []st
 	}
 
 	return questions, nil
+}
+
+func (r *Repository) GetQuestionByUserId(ctx context.Context, id string, userId int64) error {
+	collection := r.conn.Database(r.cfg.Database).Collection(QUESTIONS_COLLECTION)
+	filter := bson.M{"_id": id}
+	var result *dao.Question
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return utils.NewCustomError(404, "Question not found")
+		}
+		logger.Error(ctx, "Error finding question by ID: %v", err)
+		return utils.NewInternalServerError("Failed to retrieve question by ID")
+	}
+	if result.CreatedBy != userId {
+		return utils.NewUnauthorizedError("Permission denied to access this question")
+	}
+	return nil
 }

@@ -19,7 +19,7 @@ type Service interface {
 	CreateOrUpdateQuestions(ctx context.Context, req *dto.QuestionRequest, questionId string) (string, error)
 	GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) (*dto.ListQuestionResponse, error)
 	DeleteQuestionById(ctx context.Context, questionId string, userId int64) error
-	GetQuestionById(ctx context.Context, questionId string) (*dto.QuestionByIdResponse, error)
+	GetQuestionById(ctx context.Context, questionId string, userId int64) (*dto.QuestionByIdResponse, error)
 }
 
 func NewQuestionController(ctx context.Context, service Service) *QuestionController {
@@ -42,7 +42,7 @@ func (qc *QuestionController) Register(router gin.IRouter) {
 // @Param X-USER-ID header string true "User ID"
 // @Param id path string false "ID of the question to update"
 // @Param request body dto.QuestionRequest true "Question request body"
-// @Success 200 {object} string "Successfully created or updated questions"
+// @Success 200 {object} string "Successfully created or updated question"
 // @Failure 400 {object} utils.CustomError "Invalid request body"
 // @Failure 500 {object} utils.CustomError "Internal server error"
 // @Router /examservice/questions/{id} [put]
@@ -98,7 +98,12 @@ func (qc *QuestionController) GetQuestionsList(ctx *gin.Context) {
 	// Get the topic and subTopic query parameters
 	topic := ctx.Query("topic")
 	subTopic := ctx.Query("subTopic")
-	userId := ctx.Query("userId")
+	// Access X-USER-ID header
+	userId, err := utils.GetUserIdFromContext(ctx)
+	if err != nil {
+		utils.WriteError(ctx, utils.NewBadRequestError("Invalid userId"))
+		return
+	}
 
 	limitStr := ctx.DefaultQuery("limit", "10")
 	offsetStr := ctx.DefaultQuery("offset", "0")
@@ -140,19 +145,26 @@ func (qc *QuestionController) GetQuestionsList(ctx *gin.Context) {
 // @Router /examservice/questions/{id} [get]
 func (qc *QuestionController) GetQuestionById(ctx *gin.Context) {
 	questionId := ctx.Param("id")
+	// Access X-USER-ID header
+	userId, err := utils.GetUserIdFromContext(ctx)
+	if err != nil {
+		utils.WriteError(ctx, utils.NewBadRequestError("Invalid userId"))
+		return
+	}
 
 	// Call the service function to delete the question by ID
-	res, err := qc.service.GetQuestionById(ctx, questionId)
+	res, err := qc.service.GetQuestionById(ctx, questionId, userId)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return
 	}
+
 	utils.WriteResponse(ctx, res)
 }
 
 // DeleteQuestionById deletes a question by its ID.
 // @Summary Delete a question by ID
-// @Description Deletes a question by its ID.
+// @Description Deletes a question based on the provided ID.
 // @Tags Questions
 // @Param id path string true "Question ID"
 // @Accept json
@@ -166,7 +178,6 @@ func (qc *QuestionController) GetQuestionById(ctx *gin.Context) {
 func (qc *QuestionController) DeleteQuestionById(ctx *gin.Context) {
 	// Extract the question ID from the request context
 	questionId := ctx.Param("id")
-
 	// Access X-USER-ID header
 	userId, err := utils.GetUserIdFromContext(ctx)
 	if err != nil {

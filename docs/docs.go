@@ -15,8 +15,8 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/examservice/answers/submit": {
-            "post": {
+        "/examservice/answers/submit/{id}": {
+            "put": {
                 "description": "Creates or updates an answer based on the provided request body.",
                 "consumes": [
                     "application/json"
@@ -38,10 +38,9 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "ID of the question to update",
+                        "description": "ID of the answer to update",
                         "name": "id",
-                        "in": "path",
-                        "required": true
+                        "in": "path"
                     },
                     {
                         "description": "Answer request body",
@@ -235,7 +234,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "ID of the question to update",
+                        "description": "ID of the exam to update, if applicable",
                         "name": "id",
                         "in": "path"
                     }
@@ -518,7 +517,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successfully created or updated questions",
+                        "description": "Successfully created or updated question",
                         "schema": {
                             "type": "string"
                         }
@@ -538,7 +537,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Deletes a question by its ID.",
+                "description": "Deletes a question based on the provided ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -741,9 +740,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.Exam"
                     }
-                },
-                "statusCode": {
-                    "type": "integer"
                 }
             }
         },

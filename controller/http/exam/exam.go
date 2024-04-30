@@ -19,7 +19,7 @@ type ExamController struct {
 type Service interface {
 	CreateOrUpdateExam(ctx context.Context, req *dto.ExamRequest, questionId string) (string, error)
 	GetExamsList(ctx context.Context, filter *filters.ExamFilter, limit, offset int) (*dto.ListExamsResponse, error)
-	GetExamById(ctx context.Context, examId string) (*dto.ExamByIdResponse, error)
+	GetExamById(ctx context.Context, examId string, userId int64) (*dto.ExamByIdResponse, error)
 	DeleteExamById(ctx context.Context, examId string, userId int64) error
 }
 
@@ -36,8 +36,8 @@ func (ec *ExamController) Register(router gin.IRouter) {
 }
 
 // CreateOrUpdateExam creates a new exam or updates an existing one.
-// If the exam ID is provided in the request body, it will update the existing exam.
-// Otherwise, it will create a new exam based on the provided request body.
+// If the exam ID is provided in the request body, it updates the existing exam.
+// Otherwise, it creates a new exam based on the provided request body.
 // @Summary Create or update an exam
 // @Description Create a new exam or update an existing one based on the provided request body.
 // @Tags Exams
@@ -45,7 +45,7 @@ func (ec *ExamController) Register(router gin.IRouter) {
 // @Produce json
 // @Param request body dto.ExamRequest true "Exam request body"
 // @Param X-USER-ID header string true "User ID"
-// @Param id path string false "ID of the question to update"
+// @Param id path string false "ID of the exam to update, if applicable"
 // @Success 200 {object} dto.ExamResponse "Successful response"
 // @Failure 400 {object} utils.CustomError "Invalid request body"
 // @Failure 500 {object} utils.CustomError "Internal server error"
@@ -101,6 +101,12 @@ func (ec *ExamController) GetExamsList(ctx *gin.Context) {
 	// Get the topic and subTopic query parameters
 	topic := ctx.Query("topic")
 	subTopic := ctx.Query("subTopic")
+	// Access X-USER-ID header
+	userId, err := utils.GetUserIdFromContext(ctx)
+	if err != nil {
+		utils.WriteError(ctx, utils.NewBadRequestError("Invalid userId"))
+		return
+	}
 
 	limitStr := ctx.DefaultQuery("limit", "10")
 	offsetStr := ctx.DefaultQuery("offset", "0")
@@ -120,7 +126,7 @@ func (ec *ExamController) GetExamsList(ctx *gin.Context) {
 	}
 
 	// Call the service function with optional filter parameters
-	exams, err := ec.service.GetExamsList(ctx, &filters.ExamFilter{Topic: topic, SubTopic: subTopic}, limit, offset)
+	exams, err := ec.service.GetExamsList(ctx, &filters.ExamFilter{Topic: topic, SubTopic: subTopic, UserId: userId}, limit, offset)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return
@@ -143,8 +149,14 @@ func (ec *ExamController) GetExamsList(ctx *gin.Context) {
 func (ec *ExamController) GetExamById(ctx *gin.Context) {
 	// Extract the exam ID from the request context
 	examId := ctx.Param("id")
+	// Access X-USER-ID header
+	userId, err := utils.GetUserIdFromContext(ctx)
+	if err != nil {
+		utils.WriteError(ctx, utils.NewBadRequestError("Invalid userId"))
+		return
+	}
 
-	res, err := ec.service.GetExamById(ctx, examId)
+	res, err := ec.service.GetExamById(ctx, examId, userId)
 	if err != nil {
 		utils.WriteError(ctx, err)
 		return
@@ -152,7 +164,6 @@ func (ec *ExamController) GetExamById(ctx *gin.Context) {
 	utils.WriteResponse(ctx, res)
 }
 
-// DeleteExamById deletes an exam by its ID.
 // @Summary Delete an exam by ID
 // @Description Deletes an exam by its ID.
 // @Tags Exams

@@ -22,6 +22,7 @@ type Repository interface {
 	GetQuestionsList(ctx context.Context, filter *filters.QuestionFilter, limit, offset int) ([]*dao.Question, error)
 	GetQuestionById(ctx context.Context, questionId string) (*dao.Question, error)
 	DeleteQuestionById(ctx context.Context, id string) error
+	GetQuestionByUserId(ctx context.Context, id string, userId int64) error
 }
 
 func NewService(ctx context.Context, conf *Config, repo Repository) *Service {
@@ -58,11 +59,15 @@ func (s *Service) GetQuestionsList(ctx context.Context, filter *filters.Question
 	return response, nil
 }
 
-func (s *Service) GetQuestionById(ctx context.Context, questionId string) (*dto.QuestionByIdResponse, error) {
+func (s *Service) GetQuestionById(ctx context.Context, questionId string, userId int64) (*dto.QuestionByIdResponse, error) {
 	question, err := s.repo.GetQuestionById(ctx, questionId)
 	if err != nil {
 		return nil, err
 	}
+	if question.CreatedBy != userId {
+		return nil, utils.NewUnauthorizedError("permission denied to delete question")
+	}
+	fmt.Println("questionquestion", question)
 
 	response := &dto.QuestionByIdResponse{
 		Question:   *QuestionsResponse(question),
@@ -72,12 +77,9 @@ func (s *Service) GetQuestionById(ctx context.Context, questionId string) (*dto.
 }
 
 func (s *Service) DeleteQuestionById(ctx context.Context, id string, userId int64) error {
-	question, err := s.repo.GetQuestionById(ctx, id)
+	err := s.repo.GetQuestionByUserId(ctx, id, userId)
 	if err != nil {
 		return err
-	}
-	if question.CreatedBy != userId {
-		return utils.NewUnauthorizedError("permission denied to delete question")
 	}
 
 	err = s.repo.DeleteQuestionById(ctx, id)

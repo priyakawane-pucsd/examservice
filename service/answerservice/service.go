@@ -5,7 +5,6 @@ import (
 	"errors"
 	"examservice/models/dao"
 	"examservice/models/dto"
-	"net/http"
 	"time"
 
 	"github.com/bappaapp/goutils/logger"
@@ -19,9 +18,10 @@ type Service struct {
 type Config struct{}
 
 type Repository interface {
-	CreateOrUpdateAnswer(ctx context.Context, cfg *dao.Answer) (string, error)
+	CreateOrUpdateAnswer(ctx context.Context, cfg *dao.Answer) error
 	GetExamById(ctx context.Context, examId string) (*dao.Exam, error)
 	GetQuestionsByFilters(ctx context.Context, questionIds []string) ([]*dao.Question, error)
+	GetAnswerById(ctx context.Context, id string) (*dao.Exam, error)
 }
 
 func NewService(ctx context.Context, conf *Config, repo Repository) *Service {
@@ -79,37 +79,45 @@ func (s *Service) CheckAnswers(ctx context.Context, questions []string, answers 
 	return correctCount, nil
 }
 
-func (s *Service) CreateOrUpdateAnswer(ctx context.Context, req *dto.AnswerRequest) (*dto.AnswerResponse, error) {
+func (s *Service) CreateOrUpdateAnswer(ctx context.Context, req *dto.AnswerRequest, answerId string) (string, error) {
+	if answerId != "{id}" && answerId != "undefined" {
+		_, err := s.repo.GetAnswerById(ctx, answerId)
+		if err != nil {
+			return "", err
+		}
+		req.ID = answerId
+	}
+
 	//validate examId
 	exam, err := s.repo.GetExamById(ctx, req.ExamID)
 	if err != nil {
 		logger.Error(ctx, "failed to validate exam ID: %v", err)
-		return nil, err
+		return "", err
 	}
 
 	//validate time of submission
 	valid, err := s.ValidateSubmissionTime(ctx, exam.StartTime, exam.EndTime)
 	if err != nil {
 		logger.Error(ctx, "Error validating submission: %v", err)
-		return nil, err
+		return "", err
 	}
 	if !valid {
-		return nil, errors.New("submission is not allowed")
+		return "", errors.New("submission is not allowed")
 	}
 
 	//Check Question answers
 	corrected, err := s.CheckAnswers(ctx, exam.Questions, req.Answers)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	ans := req.ToMongoObject()
 
 	ans.Result.Attempted = int64(len(req.Answers))
 	ans.Result.Correct = int64(corrected)
 
-	objectId, err := s.repo.CreateOrUpdateAnswer(ctx, ans)
+	err = s.repo.CreateOrUpdateAnswer(ctx, ans)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &dto.AnswerResponse{StatusCode: http.StatusCreated, Id: objectId}, nil
+	return "CreateOrUpdate Successfully", nil
 }

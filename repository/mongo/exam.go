@@ -64,6 +64,7 @@ func (r *Repository) GetExamsList(ctx context.Context, filter *filters.ExamFilte
 	if filter.SubTopic != "" {
 		QueryFilter["sub_topic"] = filter.SubTopic
 	}
+	QueryFilter["createdBy"] = filter.UserId
 
 	// Define options for the find operation
 	findOptions := options.Find().SetSort(bson.M{"createdAt": -1}).SetLimit(int64(limit)).SetSkip(int64(offset))
@@ -111,6 +112,24 @@ func (r *Repository) DeleteExamById(ctx context.Context, id string) error {
 	}
 	if res.ModifiedCount == 0 {
 		utils.NewCustomError(404, "No exam found for this id")
+	}
+	return nil
+}
+
+func (r *Repository) GetExamByUserId(ctx context.Context, id string, userId int64) error {
+	collection := r.conn.Database(r.cfg.Database).Collection(EXAM_COLLECTION)
+	filter := bson.M{"_id": id}
+	var result *dao.Exam
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return utils.NewCustomError(404, "Exam not found")
+		}
+		logger.Error(ctx, "Error finding exam by ID: %v", err)
+		return utils.NewInternalServerError("Failed to retrieve exam by ID")
+	}
+	if result.CreatedBy != userId {
+		return utils.NewUnauthorizedError("Permission denied to access this question")
 	}
 	return nil
 }
